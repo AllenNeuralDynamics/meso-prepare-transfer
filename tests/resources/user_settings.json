@@ -1,0 +1,16 @@
+{
+    "input_source": "some/path",
+    "behavior_source": "some/path",
+    "output_directory": "some/path",
+    "session_start_time": "2024-03-27T16:41:13",
+    "session_end_time": "2024-03-27T16:41:52",
+    "subject_id": "900002",
+    "project": "mouse",
+    "iacuc_protocol": "2115",
+    "magnification": "16x",
+    "fov_coordinate_ml": 1.5,
+    "fov_coordinate_ap": 1.5,
+    "fov_reference": "Bregma",
+    "experimenter_full_name": "pearlman.radia",
+    "mouse_platform_name": "disc"
+}
