@@ -1,8 +1,7 @@
-from pydantic import Field
-from pydantic_settings import BaseModel
+from pydantic import Field, BaseModel
 from datetime import datetime
 from pathlib import Path
-from types import List
+from typing import List
 
 
 class UserInput(BaseModel):

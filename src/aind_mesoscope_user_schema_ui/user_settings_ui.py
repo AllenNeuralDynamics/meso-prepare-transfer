@@ -93,22 +93,21 @@ class Widget(QWidget):
         except AssertionError:
             self.ui.error_message.showMessage("Session ID must be an integer")
             return
-        behavior_json = next(
-            Path(self.config["behavior_source"]).glob(f"{session_id}_Behavior*.json")
-        )
+        # import pdb;pdb.set_trace()
+        behavior_json = next(Path(self.config["behavior_dir"]).glob(f"{session_id}_Behavior*.json"))
         with open(behavior_json, "r") as j:
             behavior_data = json.load(j)
-        start_time = behavior_data["TimeStart"]
-        end_time = behavior_data["TimeEnd"]
+        start_time = behavior_data["RecordingReport"]["TimeStart"]
+        end_time = behavior_data["RecordingReport"]["TimeEnd"]
 
         user_input = UserInput(
-            input_source=self.config["input_dir"],
+            input_source=self.config["acquisition_dir"],
             behavior_source=self.config["behavior_dir"],
             output_directory=self.config["output_dir"],
             session_start_time=start_time,
             session_end_time=end_time,
             subject_id=subject_id,
-            project=session_response["project"]["code"],
+            project=session_response.json()[0]["project"]["code"],
             experimenter_full_name=user_name,
         )
         user_input = user_input.dict()

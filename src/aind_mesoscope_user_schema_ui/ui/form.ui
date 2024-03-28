@@ -521,7 +521,7 @@
     </font>
    </property>
    <property name="text">
-    <string>User Name</string>
+    <string>User Full Name</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="subjectIdLineEdit">

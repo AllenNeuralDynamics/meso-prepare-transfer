@@ -1,3 +1,3 @@
-acquisition_dir: "data/path_to_data"
-behavior_dir: "data/path_to_data"
-output_dir: "data/path_to_output"
+acquisition_dir: "//meso1acq/data/1335174733"
+behavior_dir: "//meso1vid/mvr_data"
+output_dir: "."

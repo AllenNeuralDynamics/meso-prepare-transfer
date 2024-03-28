@@ -193,7 +193,7 @@ class UiUserSettings(object):
             QCoreApplication.translate("UserNameLineEdit", "Schema", None)
         )
         self.userNameLabel.setText(
-            QCoreApplication.translate("UserNameLineEdit", "User Name", None)
+            QCoreApplication.translate("UserNameLineEdit", "User Full Name", None)
         )
         self.subjectIdLabel.setText(
             QCoreApplication.translate("UserNameLineEdit", "Subject ID", None)
