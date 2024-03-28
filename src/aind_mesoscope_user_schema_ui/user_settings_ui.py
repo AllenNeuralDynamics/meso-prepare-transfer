@@ -75,12 +75,6 @@ class Widget(QWidget):
         session_id = self.ui.sessionIdLineEdit.text()
         subject_id = self.ui.subjectIdLineEdit.text()
 
-        user_repsonse = self._get_lims_response(user_name, "user")
-        try:
-            assert user_repsonse.status_code == 200
-        except AssertionError:
-            self.ui.error_message.showMessage("User not found in LIMS")
-            return
         subject_id_response = self._get_lims_response(subject_id, "donor")
         try:
             assert subject_id_response.status_code == 200
@@ -108,11 +102,17 @@ class Widget(QWidget):
             session_end_time=end_time,
             subject_id=subject_id,
             project=session_response.json()[0]["project"]["code"],
-            experimenter_full_name=user_name,
+            experimenter_full_name=[user_name],
         )
         user_input = user_input.dict()
-        with open(self.config["input_dir"] / session_id / "user_settings.json", "w") as j:
+        with open(
+            Path(self.config["acquisition_dir"]) / session_id / "user_settings.json", "w"
+        ) as j:
             json.dump(user_input, j, indent=4)
+        self.ui.error_message.showMessage("User settings saved")
+        self.ui.userNameLineEdit.clear()
+        self.ui.sessionIdLineEdit.clear()
+        self.ui.subjectIdLineEdit.clear()
 
     def check_submit_button(self) -> None:
         """Checks conditions to see if the submit button can be enabled."""
