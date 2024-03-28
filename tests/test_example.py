@@ -11,14 +11,14 @@ class UserSettingsTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.user_name = "pearlman.radia"
+        cls.user_name = "Radia Pearlman"
         cls.session_id = "1234567890"
         cls.subject_id = "900002"
-        cls.user_name_bad = "jareth.goblin"
+        cls.user_name_bad = "Jareth"
         cls.session_id_bad = "0987654321"
         cls.subject_id_bad = "900001"
 
-    def test_assert_example(self):
+    def test_name_input(self):
         """Example of how to test the truth of a statement."""
 
         self.assertTrue(1 == 1)

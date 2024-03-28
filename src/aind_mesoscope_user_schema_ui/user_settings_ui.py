@@ -4,6 +4,7 @@ import requests
 from pathlib import Path
 import yaml
 import json
+import os
 
 from PySide6.QtCore import QMetaMethod
 from PySide6.QtWidgets import QApplication, QWidget
@@ -27,7 +28,7 @@ class Widget(QWidget):
         self.ui = UiUserSettings()
         self.ui.setupUi(self)
         self.connect_signals()
-        config_fp = r"C:\Users\ariellel\repos\aind\aind-mesoscope-user-schema-ui\config.yml"
+        config_fp = os.getenv("MESO_USER_SETTING_CONFIG")
         with open(config_fp, "r") as file:
             self.config = yaml.safe_load(file)
 
@@ -74,7 +75,9 @@ class Widget(QWidget):
         user_name = self.ui.userNameLineEdit.text()
         session_id = self.ui.sessionIdLineEdit.text()
         subject_id = self.ui.subjectIdLineEdit.text()
-
+        if not " " in user_name:
+            self.ui.error_message.showMessage("Enter a valid user name")
+            return
         subject_id_response = self._get_lims_response(subject_id, "donor")
         try:
             assert subject_id_response.status_code == 200
@@ -83,13 +86,18 @@ class Widget(QWidget):
             return
         session_response = self._get_lims_response(session_id, "session")
         try:
-            assert session_response.status_code == 200
+            import pdb;pdb.set_trace()
+            assert session_response.json()
         except AssertionError:
-            self.ui.error_message.showMessage("Session ID must be an integer")
+            self.ui.error_message.showMessage("Invalid session ID")
             return
-        # import pdb;pdb.set_trace()
-        behavior_json = next(Path(self.config["behavior_dir"]).glob(f"{session_id}_Behavior*.json"))
-        with open(behavior_json, "r") as j:
+        camera_json = [c for c in Path(self.config["behavior_dir"]).glob(f"{session_id}*.json")]
+        if len(camera_json) < 3:
+            self.ui.error_message.showMessage("Less than 3 camera jsons found")
+        if len(camera_json) == 0:
+            self.ui.error_message.showMessage("No camera metadata found: contact engineering")
+            return
+        with open(camera_json[0], "r") as j:
             behavior_data = json.load(j)
         start_time = behavior_data["RecordingReport"]["TimeStart"]
         end_time = behavior_data["RecordingReport"]["TimeEnd"]
