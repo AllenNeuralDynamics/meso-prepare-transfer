@@ -38,7 +38,6 @@ class Widget(QWidget):
         self.ui.submitPushButton.clicked.connect(self.submit_button_clicked)
         self.ui.userNameLineEdit.textChanged.connect(self.check_submit_button)
         self.ui.sessionIdLineEdit.textChanged.connect(self.check_submit_button)
-        self.ui.subjectIdLineEdit.textChanged.connect(self.check_submit_button)
 
     def _get_lims_response(self, lims_entry: str, api: str) -> requests.Response:
         """Returns lims response.
@@ -70,27 +69,22 @@ class Widget(QWidget):
         print(f"Getting LIMS project code from response: {lims_response}")
 
     def submit_button_clicked(self) -> None:
-        """Runs job to retrieve data from user inputs. If successful will drop a UserSettings.json in the acquisition directory."""
+        """Runs job to retrieve data from user inputs.
+        If successful will drop a UserSettings.json in the acquisition directory."""
         print("Submit button clicked")
         user_name = self.ui.userNameLineEdit.text()
         session_id = self.ui.sessionIdLineEdit.text()
-        subject_id = self.ui.subjectIdLineEdit.text()
         if not " " in user_name:
             self.ui.error_message.showMessage("Enter a valid user name")
             return
-        subject_id_response = self._get_lims_response(subject_id, "donor")
-        try:
-            assert subject_id_response.status_code == 200
-        except AssertionError:
-            self.ui.error_message.showMessage("Enter a valid subject ID")
-            return
         session_response = self._get_lims_response(session_id, "session")
+        session_data = session_response.json()[0]
         try:
-            import pdb;pdb.set_trace()
-            assert session_response.json()
+            assert session_data
         except AssertionError:
             self.ui.error_message.showMessage("Invalid session ID")
             return
+        subject_id = session_data["specimen"]["external_specimen_name"]
         camera_json = [c for c in Path(self.config["behavior_dir"]).glob(f"{session_id}*.json")]
         if len(camera_json) < 3:
             self.ui.error_message.showMessage("Less than 3 camera jsons found")
@@ -120,14 +114,12 @@ class Widget(QWidget):
         self.ui.error_message.showMessage("User settings saved")
         self.ui.userNameLineEdit.clear()
         self.ui.sessionIdLineEdit.clear()
-        self.ui.subjectIdLineEdit.clear()
 
     def check_submit_button(self) -> None:
         """Checks conditions to see if the submit button can be enabled."""
         if (
             self.ui.userNameLineEdit.text()
             and self.ui.sessionIdLineEdit.text()
-            and self.ui.subjectIdLineEdit.text()
         ):
             self.ui.submitPushButton.setEnabled(True)
         else:
