@@ -1,0 +1,3 @@
+acquisition_dir: "data/path_to_data"
+behavior_dir: "data/path_to_data"
+output_dir: "data/path_to_output"
