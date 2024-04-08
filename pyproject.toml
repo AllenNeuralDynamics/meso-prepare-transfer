@@ -43,7 +43,7 @@ where = ["src"]
 version = {attr = "aind_mesoscope_user_schema_ui.__version__"}
 
 [tool.black]
-line-length = 79
+line-length = 90
 target_version = ['py36']
 exclude = '''
 
