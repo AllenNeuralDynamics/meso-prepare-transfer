@@ -5,7 +5,6 @@ from aind_data_schema.models.modalities import Modality
 from aind_data_schema.models.platforms import Platform
 
 
-
 class UserInput(BaseModel):
     """Data to be entered by the user."""
 
@@ -53,7 +52,6 @@ class ModalityMapConfig(BaseModel):
         title="modality files",
     )
 
-
     @field_validator("modalities")
     @classmethod
     def verify_modality(cls, data: Dict[str, List[str]]) -> Dict[str, List[str]]:
@@ -68,7 +66,7 @@ class ModalityMapConfig(BaseModel):
         if data.lower() not in Platform._abbreviation_map:
             raise ValueError(f"{data} not in accepted platforms")
         return data
-    
+
     @field_validator("transfer_time")
     @classmethod
     def verify_datetime(cls, data: str) -> str:
