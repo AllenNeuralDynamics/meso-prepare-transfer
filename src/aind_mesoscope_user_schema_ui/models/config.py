@@ -11,13 +11,13 @@ class UserInput(BaseModel):
     # TODO: for now this will need to be directly input by the user.
     #  In the future, the workflow sequencing engine should be able to put
     #  this in a json or we can extract it from SLIMS
-    input_source: str
-    behavior_source: str
-    output_directory: str
-    session_start_time: str
-    session_end_time: str
-    subject_id: str
-    project: str
+    input_source: str = Field(..., title="Source of the acquisition data")
+    behavior_source: str = Field(..., title="Source of the behavior data")
+    output_directory: str = Field(..., title="Output directory for the data")
+    session_start_time: str = Field(..., title="Start time of the session")
+    session_end_time: str = Field(..., title="End time of the session")
+    subject_id: str = Field(..., title="Subject ID")
+    project: str = Field(..., title="Project name")
     experimenter_full_name: List[str] = Field(..., title="Full name of the experimenter")
 
 
