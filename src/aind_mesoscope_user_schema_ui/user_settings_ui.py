@@ -230,7 +230,7 @@ class Widget(QWidget):
         user_input : dict
             user input data
         """
-        platform = self.config["platform"]  
+        platform = self.config["platform"]
         name = (
             platform.replace("_", "-")
             + "_"
@@ -243,10 +243,12 @@ class Widget(QWidget):
         manifests = {}
         manifests["ophys"] = self._search_files(
             acquisition_dir, self.config["modalities"]["ophys"]
-        ) # TODO: this should be a parameter
+        )  # TODO: this should be a parameter
         manifests["behavior"] = self._search_files(
-            behavior_dir, self.config["modalities"]["behavior"], extra_search_key=acquisition_dir.name 
-        ) # TODO: this should be a parameter
+            behavior_dir,
+            self.config["modalities"]["behavior"],
+            extra_search_key=acquisition_dir.name,
+        )  # TODO: this should be a parameter
         if self.error:
             self.ui.error_message.showMessage(f"Files not found: {self.error}")
             self.error = []
@@ -266,7 +268,8 @@ class Widget(QWidget):
             Path(self.config["manifest_directory"]).mkdir()
         with open(
             Path(self.config["manifest_directory"])
-            / f"manifest_{dt.now().strftime('%Y%m%d%H%M%S')}.yml", "w"
+            / f"manifest_{dt.now().strftime('%Y%m%d%H%M%S')}.yml",
+            "w",
         ) as yam:
             yaml.dump(modality_map.model_dump(), yam)
 

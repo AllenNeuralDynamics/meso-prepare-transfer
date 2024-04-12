@@ -20,8 +20,10 @@ class UserInput(BaseModel):
     project: str
     experimenter_full_name: List[str] = Field(..., title="Full name of the experimenter")
 
+
 class ModalityMapConfig(BaseModel):
     """Template to verify all files that need to be uploaded"""
+
     name: str = Field(
         description="Unique name for session data assets. Should follow AINDs schema for naming data assets",
         title="Unique name",
@@ -42,7 +44,9 @@ class ModalityMapConfig(BaseModel):
         description="where to send data to on VAST",
         title="VAST destination and maybe S3?",
     )
-    capsule_id: Optional[str] = Field(description="Capsule ID of pipeline to run", title="Capsule")
+    capsule_id: Optional[str] = Field(
+        description="Capsule ID of pipeline to run", title="Capsule"
+    )
     modalities: Dict[str, List[str]] = Field(
         description="list of ModalityFile objects containing modality names and associated files",
         title="modality files",
