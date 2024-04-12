@@ -7,12 +7,13 @@ import json
 import os
 from typing import Union
 from PySide6.QtWidgets import QApplication, QWidget
+from datetime import datetime as dt
 
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py
 from aind_mesoscope_user_schema_ui.ui.ui_form import UiUserSettings
-from aind_mesoscope_user_schema_ui.config import UserInput
+from aind_mesoscope_user_schema_ui.config import UserInput, ModalityMapConfig
 
 
 class Widget(QWidget):
@@ -26,7 +27,8 @@ class Widget(QWidget):
         self.ui.setupUi(self)
         self.connect_signals()
         config_fp = os.getenv("MESO_USER_SETTING_CONFIG")
-        self.config = self.get_config(config_fp)
+        self.config = self._read_yaml(config_fp)
+        self.error = []
 
     def connect_signals(self) -> None:
         """Connect signals to slots."""
@@ -35,7 +37,7 @@ class Widget(QWidget):
         self.ui.userNameLineEdit.textChanged.connect(self.check_submit_button)
         self.ui.sessionIdLineEdit.textChanged.connect(self.check_submit_button)
 
-    def get_config(self, file_path: str) -> dict:
+    def _read_yaml(self, file_path: str) -> dict:
         """loads and returns yaml file contents as dict
 
         Parameters
@@ -95,7 +97,10 @@ class Widget(QWidget):
         Union[bool, dict]
             session data or resposne
         """
-        session_data = session_response.json()[0]
+        try:
+            session_data = session_response.json()[0]
+        except IndexError:
+            self.ui.error_message.showMessage("Invalid session ID")
         try:
             assert session_data
             return session_data
@@ -150,7 +155,7 @@ class Widget(QWidget):
         project_id: str,
         session_id: str,
         user_name: str,
-    ) -> None:
+    ) -> UserInput:
         """_Generates user settings json for metdata mapping into session json
 
         Parameters
@@ -169,7 +174,7 @@ class Widget(QWidget):
             full name of user
         """
         user_input = UserInput(
-            input_source=self.config["acquisition_dir"],
+            input_source=self.config["acquisition_dir"] + "/" + session_id,
             behavior_source=self.config["behavior_dir"],
             output_directory=self.config["output_dir"],
             session_start_time=start_time,
@@ -178,12 +183,92 @@ class Widget(QWidget):
             project=project_id,
             experimenter_full_name=[user_name],
         )
-        user_input = user_input.dict()
+        user_input = user_input.model_dump()
         with open(
             Path(self.config["acquisition_dir"]) / session_id / "user_settings.json",
             "w",
         ) as j:
             json.dump(user_input, j, indent=4)
+        return user_input
+
+    def _search_files(self, directory: str, files: list, extra_search_key=None) -> dict:
+        """searches for files in a directory
+
+        Parameters
+        ----------
+        directory : str
+            directory to search
+        files : dict
+            files to search for
+        extra_search_key : str
+            Only for behavior files since they are not in any subdirectory
+        Returns
+        -------
+        dict
+            found files
+        """
+        found_files = []
+        for file in files:
+            if extra_search_key:
+                file = extra_search_key + file
+            src = list(Path(directory).glob(file))
+            if len(src) > 1:
+                for i in src:
+                    found_files.append(str(i))
+            elif len(src) == 1:
+                found_files.append(str(src[0]))
+            else:
+                self.error.append(file)
+        print(found_files)
+        return found_files
+
+    def _generate_manifest_file(self, user_input: dict) -> None:
+        """use information from user input to generate yaml file
+
+        Parameters
+        ----------
+        user_input : dict
+            user input data
+        """
+        platform = self.config["platform"]  
+        name = (
+            platform.replace("_", "-")
+            + "_"
+            + user_input["subject_id"]
+            + "_"
+            + dt.now().strftime("%Y-%m-%d_%H-%M-%S")
+        )
+        acquisition_dir = Path(user_input["input_source"])
+        behavior_dir = Path(user_input["behavior_source"])
+        manifests = {}
+        manifests["ophys"] = self._search_files(
+            acquisition_dir, self.config["modalities"]["ophys"]
+        ) # TODO: this should be a parameter
+        manifests["behavior"] = self._search_files(
+            behavior_dir, self.config["modalities"]["behavior"], extra_search_key=acquisition_dir.name 
+        ) # TODO: this should be a parameter
+        if self.error:
+            self.ui.error_message.showMessage(f"Files not found: {self.error}")
+            self.error = []
+        manifest_file = dict(
+            name=name,
+            platform=platform,
+            subject_id=user_input["subject_id"],
+            acquisition_datetime=user_input["session_start_time"],
+            transfer_time="23:00",
+            s3_bucket=self.config["s3_bucket"],
+            destination=self.config["destination"],
+            capsule_id=self.config["capsule_id"],
+            modalities=manifests,
+        )
+        modality_map = ModalityMapConfig(**manifest_file)
+        if not Path(self.config["manifest_directory"]).exists():
+            Path(self.config["manifest_directory"]).mkdir()
+        with open(
+            Path(self.config["manifest_directory"])
+            / f"manifest_{dt.now().strftime('%Y%m%d%H%M%S')}.yml", "w"
+        ) as yam:
+            yaml.dump(modality_map.model_dump(), yam)
 
     def submit_button_clicked(self) -> None:
         """Runs job to retrieve data from user inputs.
@@ -209,9 +294,10 @@ class Widget(QWidget):
             return
         start_time = behavior_data["RecordingReport"]["TimeStart"]
         end_time = behavior_data["RecordingReport"]["TimeEnd"]
-        self._generate_user_settings(
+        user_input = self._generate_user_settings(
             start_time, end_time, subject_id, project_id, session_id, user_name
         )
+        self._generate_manifest_file(user_input)
         self.ui.error_message.showMessage("User settings saved")
         self.ui.userNameLineEdit.clear()
         self.ui.sessionIdLineEdit.clear()
@@ -225,6 +311,7 @@ class Widget(QWidget):
 
 
 if __name__ == "__main__":
+
     app = QApplication(sys.argv)
     widget = Widget()
     widget.show()
