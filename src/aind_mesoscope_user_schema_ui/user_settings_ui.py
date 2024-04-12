@@ -13,7 +13,7 @@ from datetime import datetime as dt
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py
 from aind_mesoscope_user_schema_ui.ui.ui_form import UiUserSettings
-from aind_mesoscope_user_schema_ui.config import UserInput, ModalityMapConfig
+from aind_mesoscope_user_schema_ui.models.config import UserInput, ModalityMapConfig
 
 
 class Widget(QWidget):
