@@ -2,7 +2,7 @@
 
 from unittest.mock import MagicMock, patch, mock_open
 import unittest
-from aind_mesoscope_user_schema_ui.user_settings_ui import Widget
+from aind_mesoscope_user_schema_ui.main import Widget
 from requests import Response
 import json
 import sys

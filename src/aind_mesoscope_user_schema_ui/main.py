@@ -257,7 +257,7 @@ class Widget(QWidget):
             platform=platform,
             subject_id=user_input["subject_id"],
             acquisition_datetime=user_input["session_start_time"],
-            transfer_time="23:00",
+            # transfer_time="23:00",
             s3_bucket=self.config["s3_bucket"],
             destination=self.config["destination"],
             capsule_id=self.config["capsule_id"],

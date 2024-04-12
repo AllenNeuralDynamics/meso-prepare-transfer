@@ -34,8 +34,7 @@ class ModalityMapConfig(BaseModel):
         description="acquisition datetime in YYYY-MM-DD HH:mm:ss format",
         title="Acquisition datetime",
     )
-    transfer_time: Optional[str] = Field(
-        default="23:00",
+    transfer_time: Optional[str] = Field(default="now",
         description="Transfer time to schedule copy and upload, defaults to immediately",
         title="APScheduler transfer time",
     )
@@ -63,11 +62,13 @@ class ModalityMapConfig(BaseModel):
     @field_validator("platform")
     @classmethod
     def verify_platform(cls, data: str) -> str:
+        if "_" in data:
+            data = data.replace("_", "-")
         if data.lower() not in Platform._abbreviation_map:
             raise ValueError(f"{data} not in accepted platforms")
         return data
 
-    @field_validator("transfer_time")
+    @field_validator("transfer_time", mode="after")
     @classmethod
     def verify_datetime(cls, data: str) -> str:
         try:
