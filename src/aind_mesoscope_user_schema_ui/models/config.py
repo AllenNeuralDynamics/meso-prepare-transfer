@@ -1,6 +1,7 @@
 from pydantic import Field, BaseModel, field_validator
 from datetime import datetime
 from typing import List, Dict, Optional
+from pathlib import Path
 from aind_data_schema.models.modalities import Modality
 from aind_data_schema.models.platforms import Platform
 
@@ -25,7 +26,7 @@ class ModalityMapConfig(BaseModel):
     s3_bucket: str = Field(description="s3 endpoint", title="S3 endpoint")
     destination: str = Field(
         description="where to send data to on VAST",
-        title="VAST destination and maybe S3?",
+        title="Destination dierctory",
     )
     capsule_id: Optional[str] = Field(
         description="Capsule ID of pipeline to run", title="Capsule"
@@ -34,6 +35,7 @@ class ModalityMapConfig(BaseModel):
         description="list of ModalityFile objects containing modality names and associated files",
         title="modality files",
     )
+    schemas: list = Field(description="list of schema files", title="schema files")
 
     @field_validator("modalities")
     @classmethod
@@ -59,4 +61,18 @@ class ModalityMapConfig(BaseModel):
             datetime.strptime(data, "%H:%M").time()
         except ValueError:
             raise ValueError(f"Specify time in HH:MM format, not {data}")
+        return data
+
+    @field_validator("destination")
+    @classmethod
+    def verify_destination(cls, data: str) -> str:
+        if Path(data).exists():
+            return data
+
+    @field_validator("schemas")
+    @classmethod
+    def verify_schemas(cls, data: list) -> list:
+        for schema in data:
+            if not Path(schema).exists():
+                raise ValueError(f"{schema} does not exist")
         return data

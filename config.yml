@@ -5,6 +5,9 @@ manifest_directory: "D:\\aind-watchdog-service-manifest"
 s3_bucket: "s3://aind-watchdog-service"
 capsule_id: "capsule_id"
 destination: "D:/ophys"
+schemas:
+  - rig.json
+  - session.json
 modalities: # What files and modalities service is expected to move; glob patterns OK
   ophys: 
     - "*_averaged_depth.tiff"

@@ -216,7 +216,8 @@ class Widget(QWidget):
                 found_files.append(str(src[0]))
             else:
                 self.error.append(file)
-        print(found_files)
+        if len(found_files) == 0:
+            self.ui.error_message.showMessage(f"No files found in {directory}")
         return found_files
 
     def _generate_manifest_file(self, user_input: dict) -> None:
@@ -249,6 +250,9 @@ class Widget(QWidget):
         if self.error:
             self.ui.error_message.showMessage(f"Files not found: {self.error}")
             self.error = []
+        schemas = []
+        for i in self.config["schemas"]:
+            schemas.append(os.path.join(user_input["input_source"], i))
         manifest_file = dict(
             name=name,
             platform=platform,
@@ -259,6 +263,7 @@ class Widget(QWidget):
             destination=self.config["destination"],
             capsule_id=self.config["capsule_id"],
             modalities=manifests,
+            schemas=schemas,
         )
         modality_map = ModalityMapConfig(**manifest_file)
         if not Path(self.config["manifest_directory"]).exists():
@@ -311,7 +316,6 @@ class Widget(QWidget):
 
 
 if __name__ == "__main__":
-
     app = QApplication(sys.argv)
     widget = Widget()
     widget.show()
