@@ -5,22 +5,6 @@ from aind_data_schema.models.modalities import Modality
 from aind_data_schema.models.platforms import Platform
 
 
-class UserInput(BaseModel):
-    """Data to be entered by the user."""
-
-    # TODO: for now this will need to be directly input by the user.
-    #  In the future, the workflow sequencing engine should be able to put
-    #  this in a json or we can extract it from SLIMS
-    input_source: str = Field(..., title="Source of the acquisition data")
-    behavior_source: str = Field(..., title="Source of the behavior data")
-    output_directory: str = Field(..., title="Output directory for the data")
-    session_start_time: str = Field(..., title="Start time of the session")
-    session_end_time: str = Field(..., title="End time of the session")
-    subject_id: str = Field(..., title="Subject ID")
-    project: str = Field(..., title="Project name")
-    experimenter_full_name: List[str] = Field(..., title="Full name of the experimenter")
-
-
 class ModalityMapConfig(BaseModel):
     """Template to verify all files that need to be uploaded"""
 
@@ -30,8 +14,7 @@ class ModalityMapConfig(BaseModel):
     )
     platform: str = Field(description="Platform type", title="Platform type")
     subject_id: int = Field(description="Subject ID", title="Subject ID")
-    acquisition_datetime: str = Field(
-        description="acquisition datetime in YYYY-MM-DD HH:mm:ss format",
+    acquisition_datetime: datetime = Field(
         title="Acquisition datetime",
     )
     transfer_time: Optional[str] = Field(default="now",

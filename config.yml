@@ -1,6 +1,5 @@
 acquisition_dir: "D:\\data"
 behavior_dir: "D:\\behavior\\data"
-output_dir: "."
 platform: multiplane_ophys
 manifest_directory: "D:\\aind-watchdog-service-manifest"
 s3_bucket: "s3://aind-watchdog-service"
@@ -22,7 +21,8 @@ modalities: # What files and modalities service is expected to move; glob patter
     - "*timeseries.roi"
     - "*timeseries.tiff"
     - "*vasculature.tif"
-    - user_settings.json
+    - session.json
+    - rig.json
   behavior:
     - "*Behavior*.mp4"
     - "*Face*.mp4"

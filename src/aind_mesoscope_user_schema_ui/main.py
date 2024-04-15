@@ -13,7 +13,8 @@ from datetime import datetime as dt
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py
 from aind_mesoscope_user_schema_ui.ui.ui_form import UiUserSettings
-from aind_mesoscope_user_schema_ui.models.config import UserInput, ModalityMapConfig
+from aind_mesoscope_user_schema_ui.models.config import ModalityMapConfig
+from aind_metadata_mapper.mesoscope.session import MesoscopeEtl, JobSettings
 
 
 class Widget(QWidget):
@@ -155,7 +156,7 @@ class Widget(QWidget):
         project_id: str,
         session_id: str,
         user_name: str,
-    ) -> UserInput:
+    ) -> dict:
         """_Generates user settings json for metdata mapping into session json
 
         Parameters
@@ -173,23 +174,20 @@ class Widget(QWidget):
         user_name: str
             full name of user
         """
-        user_input = UserInput(
+        user_input = JobSettings(
             input_source=self.config["acquisition_dir"] + "/" + session_id,
             behavior_source=self.config["behavior_dir"],
-            output_directory=self.config["output_dir"],
+            output_directory=self.config["acquisition_dir"] + "/" + session_id,
             session_start_time=start_time,
             session_end_time=end_time,
             subject_id=subject_id,
             project=project_id,
             experimenter_full_name=[user_name],
         )
-        user_input = user_input.model_dump()
-        with open(
-            Path(self.config["acquisition_dir"]) / session_id / "user_settings.json",
-            "w",
-        ) as j:
-            json.dump(user_input, j, indent=4)
-        return user_input
+        meso_etl = MesoscopeEtl(user_input)
+        meso_etl.run_job()
+        return user_input.model_dump()
+
 
     def _search_files(self, directory: str, files: list, extra_search_key=None) -> dict:
         """searches for files in a directory
