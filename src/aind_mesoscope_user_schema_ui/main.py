@@ -188,7 +188,6 @@ class Widget(QWidget):
         meso_etl.run_job()
         return user_input.model_dump()
 
-
     def _search_files(self, directory: str, files: list, extra_search_key=None) -> dict:
         """searches for files in a directory
 

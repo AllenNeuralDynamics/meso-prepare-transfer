@@ -17,7 +17,8 @@ class ModalityMapConfig(BaseModel):
     acquisition_datetime: datetime = Field(
         title="Acquisition datetime",
     )
-    transfer_time: Optional[str] = Field(default="now",
+    transfer_time: Optional[str] = Field(
+        default="now",
         description="Transfer time to schedule copy and upload, defaults to immediately",
         title="APScheduler transfer time",
     )
