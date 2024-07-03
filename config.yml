@@ -4,7 +4,7 @@ platform: multiplane_ophys
 manifest_directory: "D:/aind-watchdog-service-manifest"
 s3_bucket: "public"
 capsule_id: "3d2d8c8b-ec5d-49dd-afa3-660bf3318fff"
-mount: "ophys"
+mount: "test"
 destination: //allen/aind/scratch/2p-working-group/data-uploads
 schemas:
   - rig.json
