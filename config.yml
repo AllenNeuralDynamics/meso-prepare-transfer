@@ -1,13 +1,15 @@
-acquisition_dir: "D:\\data"
-behavior_dir: "D:\\behavior\\data"
+acquisition_dir: "D:/data"
+behavior_dir: "D:/behavior/data"
 platform: multiplane_ophys
-manifest_directory: "D:\\aind-watchdog-service-manifest"
-s3_bucket: "s3://aind-watchdog-service"
-capsule_id: "capsule_id"
-destination: "D:/ophys"
+manifest_directory: "D:/aind-watchdog-service-manifest"
+s3_bucket: "public"
+capsule_id: "3d2d8c8b-ec5d-49dd-afa3-660bf3318fff"
+mount: "ophys"
+destination: //allen/aind/scratch/2p-working-group/data-uploads
 schemas:
   - rig.json
   - session.json
+transfer_time: "now"
 modalities: # What files and modalities service is expected to move; glob patterns OK
   ophys: 
     - "*_averaged_depth.tiff"
@@ -18,18 +20,17 @@ modalities: # What files and modalities service is expected to move; glob patter
     - "*local_z_stack*.tiff"
     - "*platform.json"
     - "*reticle.tif"
-    - "*stim.pkl"
     - "*surface.roi"
     - "*sync.h5"
     - "*timeseries.roi"
     - "*timeseries.tiff"
     - "*vasculature.tif"
-    - session.json
-    - rig.json
-  behavior:
+  behavior-videos:
     - "*Behavior*.mp4"
     - "*Face*.mp4"
     - "*Eye*.mp4"
     - "*Behavior*.json"
     - "*Face*.json"
     - "*Eye*.json"
+  behavior:
+    - "*stim.pkl"

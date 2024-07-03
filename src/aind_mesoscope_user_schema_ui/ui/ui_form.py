@@ -18,9 +18,9 @@ from PySide6.QtCore import (
     QPoint,
     QRect,
     QSize,
+    Qt,
     QTime,
     QUrl,
-    Qt,
 )
 from PySide6.QtGui import (
     QBrush,
@@ -42,12 +42,12 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import (
     QApplication,
+    QErrorMessage,
     QLabel,
     QLineEdit,
     QPushButton,
     QSizePolicy,
     QWidget,
-    QErrorMessage,
 )
 
 

@@ -1,25 +1,67 @@
 # This Python file uses the following encoding: utf-8
-import sys
-import requests
-from pathlib import Path
-import yaml
 import json
 import os
-from typing import Union
-from PySide6.QtWidgets import QApplication, QWidget
+import sys
 from datetime import datetime as dt
+from datetime import timedelta
+from pathlib import Path
+from typing import Union
+
+import requests
+import yaml
+from aind_data_schema.core.data_description import Funding, RawDataDescription
+from aind_data_schema_models.modalities import Modality
+from aind_data_schema_models.organizations import Organization
+from aind_data_schema_models.pid_names import PIDName
+from aind_data_schema_models.platforms import Platform
+from aind_metadata_mapper.mesoscope.session import JobSettings, MesoscopeEtl
+from PySide6.QtWidgets import QApplication, QWidget
+
+from aind_mesoscope_user_schema_ui.models.config import ModalityMapConfig
+from aind_mesoscope_user_schema_ui.sync_dataset import Sync
 
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py
 from aind_mesoscope_user_schema_ui.ui.ui_form import UiUserSettings
-from aind_mesoscope_user_schema_ui.models.config import ModalityMapConfig
-from aind_metadata_mapper.mesoscope.session import MesoscopeEtl, JobSettings
 
 
 class Widget(QWidget):
     _LIMS_URLS = {
         "session": "http://lims2/ophys_sessions.json?id={}",
+    }
+    _PROJECT_MAPPING = {
+        "Learning mFISH-V1omFISH": [
+            "U01BFCT",
+            "omFISHSstMeso",
+            "omFISHGad2Meso",
+            "LearningmFISHDevelopment",
+            "LearningmFISHTask1A",
+            "omFISHCux2Meso",
+            "omFISHGad2Meso",
+            "omFISHRbp4Meso",
+        ],
+        "OpenScope": [
+            "OpenScopeDendriteCoupling",
+            "OpenScopeSequenceLearning",
+            "OpenscopeDevelopment",
+        ],
+    }
+    _INVESTIGATORS = {
+        "U01BFCT": [PIDName(name="Anton Arkhipov"), PIDName(name="Marina Garrett")],
+        "omFISHSstMeso": [PIDName(name="Anton Arkhipov"), PIDName(name="Omid Zobeiri")],
+        "omFISHGad2Meso": [PIDName(name="Anton Arkhipov"), PIDName(name="Omid Zobeiri")],
+        "LearningmFISHDevelopment": [
+            PIDName(name="Marina Garrett"),
+            PIDName(name="Peter Groblewski"),
+        ],
+        "LearningmFISHTask1A": [
+            PIDName(name="Marina Garrett"),
+            PIDName(name="Peter Groblewski"),
+        ],
+        "OpenScopeDendriteCoupling": [PIDName(name="Jerome Lecoq")],
+        "OpenScopeSequenceLearning": [PIDName(name="Jerome Lecoq")],
+        "OpenscopeDevelopment": [PIDName(name="Jerome Lecoq")],
     }
 
     def __init__(self, parent=None):
@@ -177,6 +219,7 @@ class Widget(QWidget):
         user_input = JobSettings(
             input_source=self.config["acquisition_dir"] + "/" + session_id,
             behavior_source=self.config["behavior_dir"],
+            session_id=session_id,
             output_directory=self.config["acquisition_dir"] + "/" + session_id,
             session_start_time=start_time,
             session_end_time=end_time,
@@ -188,10 +231,62 @@ class Widget(QWidget):
         meso_etl.run_job()
         return user_input.model_dump()
 
+    def _generate_data_description(
+        self,
+        subject_id: str,
+        start_time: str,
+        organization: Organization,
+        investigators: list,
+        funding_source: list,
+        session_id: str,
+        project: str,
+    ) -> dict:
+        """Generate data description for session
+
+        Parameters
+        ----------
+        subject_id : str
+            mouse id
+        start_time : str
+            acquisition start time
+        organization : Organization
+            organization
+        investigators : list
+            list of investigators
+        funding_source : list
+            list of funding sources
+        session_id : str
+            session id
+        project : str
+            project name
+
+        Returns
+        -------
+        dict
+            data description
+        """
+
+        raw_description = RawDataDescription(
+            modality=[Modality.POPHYS, Modality.BEHAVIOR_VIDEOS],
+            platform=Platform.MULTIPLANE_OPHYS,
+            subject_id=subject_id,
+            creation_time=start_time,
+            institution=organization,
+            investigators=investigators,
+            funding_source=funding_source,
+            project_name=project,
+        )
+        serialized = raw_description.model_dump_json()
+        deserialized = RawDataDescription.model_validate_json(serialized)
+        deserialized.write_standard_file(
+            output_directory=self.config["acquisition_dir"] + "/" + session_id,
+        )
+        return json.loads(serialized)
+
     def _search_files(self, directory: str, files: list, extra_search_key=None) -> dict:
         """searches for files in a directory
 
-        Parameters
+        Parameters 
         ----------
         directory : str
             directory to search
@@ -220,13 +315,44 @@ class Widget(QWidget):
             self.ui.error_message.showMessage(f"No files found in {directory}")
         return found_files
 
-    def _generate_manifest_file(self, user_input: dict) -> None:
+    def get_start_end_times(self, sync_file: Path) -> tuple:
+        """Gets the start and end times from the sync file based
+        on the stimulus trigger line (rising edge for start, falling edge for end)
+
+        Returns
+        -------
+        tuple
+            (start_time: datetime, end_time: datetime)
+        """
+        sync_data = Sync(sync_file)
+        sync_start = sync_data.meta_data["start_time"]
+        acq_start = sync_data.get_rising_edges(
+            5, units="seconds"
+        )  # stimulus trigger line
+        acq_end = sync_data.get_falling_edges(5, units="seconds")  # stimulus trigger line
+        if not acq_start or not acq_end:
+            raise ValueError(
+                "Could not pull rising or falling edge from line 5 in sync file"
+            )
+        if len(acq_start) > 1 or len(acq_end) > 1:
+            raise ValueError("Multiple rising or falling edges detected")
+        return sync_start + timedelta(seconds=acq_start[0]), sync_start + timedelta(
+            seconds=acq_end[0]
+        )
+
+    def _generate_manifest_file(
+        self, user_input: dict, data_description: dict, session_id: str
+    ) -> None:
         """use information from user input to generate yaml file
 
         Parameters
         ----------
         user_input : dict
             user input data
+        data_description : dict
+            data description information
+        session_id: str
+            session id
         """
         platform = self.config["platform"]
         name = (
@@ -236,6 +362,11 @@ class Widget(QWidget):
             + "_"
             + dt.now().strftime("%Y-%m-%d_%H-%M-%S")
         )
+        data_directory = Path(self.config["acquisition_dir"]) / session_id
+        sync_file = [
+            i for i in data_directory.glob("*.h5") if "full_field" not in str(i)
+        ][0]
+        start_time, _ = self.get_start_end_times(sync_file)
         acquisition_dir = Path(user_input["input_source"])
         behavior_dir = Path(user_input["behavior_source"])
         manifests = {}
@@ -243,8 +374,11 @@ class Widget(QWidget):
             acquisition_dir, self.config["modalities"]["ophys"]
         )  # TODO: this should be a parameter
         manifests["behavior"] = self._search_files(
+            acquisition_dir, self.config["modalities"]["behavior"]
+        )
+        manifests["behavior-videos"] = self._search_files(
             behavior_dir,
-            self.config["modalities"]["behavior"],
+            self.config["modalities"]["behavior-videos"],
             extra_search_key=acquisition_dir.name,
         )  # TODO: this should be a parameter
         if self.error:
@@ -252,18 +386,26 @@ class Widget(QWidget):
             self.error = []
         schemas = []
         for i in self.config["schemas"]:
-            schemas.append(os.path.join(user_input["input_source"], i))
+            # If schema is not a file, that exists, pull it from the data directory
+            if Path(i).is_file():
+                schemas.append(i)
+            else:
+                schemas.append(os.path.join(user_input["input_source"], i))
         manifest_file = dict(
             name=name,
             platform=platform,
+            processor_full_name=user_input["experimenter_full_name"][0],
             subject_id=user_input["subject_id"],
-            acquisition_datetime=user_input["session_start_time"],
-            # transfer_time="23:00",
+            acquisition_datetime=start_time,
+            schedule_time=dt.now().replace(hour=3, minute=0, second=0, microsecond=0)
+            + timedelta(days=1),
             s3_bucket=self.config["s3_bucket"],
             destination=self.config["destination"],
             capsule_id=self.config["capsule_id"],
+            mount=self.config["mount"],
             modalities=manifests,
             schemas=schemas,
+            project_name=data_description["project_name"],
         )
         modality_map = ModalityMapConfig(**manifest_file)
         if not Path(self.config["manifest_directory"]).exists():
@@ -302,7 +444,17 @@ class Widget(QWidget):
         user_input = self._generate_user_settings(
             start_time, end_time, subject_id, project_id, session_id, user_name
         )
-        self._generate_manifest_file(user_input)
+        project_name = [k for k, v in self._PROJECT_MAPPING.items() if project_id in v][0]
+        data_description = self._generate_data_description(
+            subject_id,
+            start_time,
+            Organization.AIND,
+            self._INVESTIGATORS[project_id],
+            [Funding(funder=Organization.AI)],
+            session_id,
+            project_name,
+        )
+        self._generate_manifest_file(user_input, data_description, session_id)
         self.ui.error_message.showMessage("User settings saved")
         self.ui.userNameLineEdit.clear()
         self.ui.sessionIdLineEdit.clear()

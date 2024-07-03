@@ -19,10 +19,12 @@ dynamic = ["version"]
 dependencies = [
     'PyQt6==6.6.1',
     'PySide6==6.6.3',
+    'aind-data-schema==0.33.7',
+    'aind-metadata-mapper==0.12.3',
     'requests',
-    'pydantic',
     'pyyaml',
-    'pyinstaller'
+    'pyinstaller',
+    'h5py'
 ]
 
 [project.optional-dependencies]
@@ -34,7 +36,6 @@ dev = [
     'isort',
     'Sphinx',
     'furo',
-    'pyinstaller'
 ]
 
 [tool.setuptools.packages.find]

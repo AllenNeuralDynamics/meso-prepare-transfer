@@ -1,9 +1,10 @@
-from pydantic import Field, BaseModel, field_validator
 from datetime import datetime
-from typing import List, Dict, Optional
 from pathlib import Path
-from aind_data_schema.models.modalities import Modality
-from aind_data_schema.models.platforms import Platform
+from typing import Dict, List, Optional
+
+from aind_data_schema_models.modalities import Modality
+from aind_data_schema_models.platforms import Platform
+from pydantic import BaseModel, Field, field_validator
 
 
 class ModalityMapConfig(BaseModel):
@@ -18,12 +19,14 @@ class ModalityMapConfig(BaseModel):
     acquisition_datetime: datetime = Field(
         title="Acquisition datetime",
     )
-    transfer_time: Optional[str] = Field(
-        default="now",
+    schedule_time: Optional[datetime] = Field(
+        default=None,
         description="Transfer time to schedule copy and upload, defaults to immediately",
         title="APScheduler transfer time",
     )
-    s3_bucket: str = Field(description="s3 endpoint", title="S3 endpoint")
+    s3_bucket: str = Field(
+        default="private", description="s3 endpoint", title="S3 endpoint"
+    )
     destination: str = Field(
         description="where to send data to on VAST",
         title="Destination dierctory",
@@ -31,11 +34,18 @@ class ModalityMapConfig(BaseModel):
     capsule_id: Optional[str] = Field(
         description="Capsule ID of pipeline to run", title="Capsule"
     )
+    mount: Optional[str] = Field(
+        description="Mount point of the data", title="Mount point"
+    )
     modalities: Dict[str, List[str]] = Field(
         description="list of ModalityFile objects containing modality names and associated files",
         title="modality files",
     )
     schemas: list = Field(description="list of schema files", title="schema files")
+    project_name: str = Field(description="Project name", title="Project name")
+    processor_full_name: str = Field(
+        description="Processor full name", title="Processor full name"
+    )
 
     @field_validator("modalities")
     @classmethod
@@ -54,20 +64,13 @@ class ModalityMapConfig(BaseModel):
             raise ValueError(f"{data} not in accepted platforms")
         return data
 
-    @field_validator("transfer_time", mode="after")
-    @classmethod
-    def verify_datetime(cls, data: str) -> str:
-        try:
-            datetime.strptime(data, "%H:%M").time()
-        except ValueError:
-            raise ValueError(f"Specify time in HH:MM format, not {data}")
-        return data
-
     @field_validator("destination")
     @classmethod
     def verify_destination(cls, data: str) -> str:
         if Path(data).exists():
             return data
+        else:
+            raise ValueError(f"{data} does not exist")
 
     @field_validator("schemas")
     @classmethod
