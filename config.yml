@@ -2,14 +2,16 @@ acquisition_dir: "D:/data"
 behavior_dir: "D:/behavior/data"
 platform: multiplane_ophys
 manifest_directory: "D:/aind-watchdog-service-manifest"
-s3_bucket: "public"
-capsule_id: "3d2d8c8b-ec5d-49dd-afa3-660bf3318fff"
-mount: "test"
+s3_bucket: "scratch"
+capsule_id: "56bf687b-dbcd-4b93-a650-21b8584036ff"
+mount: "multiplane-ophys_726433_2024-05-14_08-13-02"
 destination: //allen/aind/scratch/2p-working-group/data-uploads
 schemas:
   - rig.json
   - session.json
 transfer_time: "now"
+force_cloud_sync: true
+transfer_endpoint: "http://aind-data-transfer-service-dev/api/v1/submit_jobs"
 modalities: # What files and modalities service is expected to move; glob patterns OK
   ophys: 
     - "*_averaged_depth.tiff"
@@ -34,3 +36,4 @@ modalities: # What files and modalities service is expected to move; glob patter
     - "*Eye*.json"
   behavior:
     - "*stim.pkl"
+    - "*stim_table.csv"

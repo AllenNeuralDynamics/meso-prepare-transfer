@@ -226,6 +226,7 @@ class Widget(QWidget):
             subject_id=subject_id,
             project=project_id,
             experimenter_full_name=[user_name],
+            optional_output=self.config["acquisition_dir"] + "/" + session_id
         )
         meso_etl = MesoscopeEtl(user_input)
         meso_etl.run_job()
@@ -240,6 +241,7 @@ class Widget(QWidget):
         funding_source: list,
         session_id: str,
         project: str,
+        project_id: str
     ) -> dict:
         """Generate data description for session
 
@@ -259,6 +261,8 @@ class Widget(QWidget):
             session id
         project : str
             project name
+        project_id : str
+            project id
 
         Returns
         -------
@@ -275,6 +279,7 @@ class Widget(QWidget):
             investigators=investigators,
             funding_source=funding_source,
             project_name=project,
+            data_summary=project_id
         )
         serialized = raw_description.model_dump_json()
         deserialized = RawDataDescription.model_validate_json(serialized)
@@ -406,6 +411,8 @@ class Widget(QWidget):
             modalities=manifests,
             schemas=schemas,
             project_name=data_description["project_name"],
+            transfer_endpoint=self.config["transfer_endpoint"],
+            force_cloud_sync=self.config["force_cloud_sync"],
         )
         modality_map = ModalityMapConfig(**manifest_file)
         if not Path(self.config["manifest_directory"]).exists():
@@ -453,6 +460,7 @@ class Widget(QWidget):
             [Funding(funder=Organization.AI)],
             session_id,
             project_name,
+            project_id
         )
         self._generate_manifest_file(user_input, data_description, session_id)
         self.ui.error_message.showMessage("User settings saved")

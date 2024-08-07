@@ -24,6 +24,12 @@ class ModalityMapConfig(BaseModel):
         description="Transfer time to schedule copy and upload, defaults to immediately",
         title="APScheduler transfer time",
     )
+    transfer_endpoint: str = Field(
+        default="vast", description="Transfer endpoint", title="Transfer endpoint"
+    )
+    force_cloud_sync: Optional[bool] = Field(
+        default=False, description="Force cloud sync", title="Force cloud sync"
+    )
     s3_bucket: str = Field(
         default="private", description="s3 endpoint", title="S3 endpoint"
     )
