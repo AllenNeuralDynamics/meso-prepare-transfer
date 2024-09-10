@@ -6,6 +6,8 @@ from datetime import datetime as dt
 from datetime import timedelta
 from pathlib import Path
 from typing import Union
+from logging_config import setup_logging
+import logging
 
 import requests
 import yaml
@@ -72,6 +74,7 @@ class Widget(QWidget):
         config_fp = os.getenv("MESO_USER_SETTING_CONFIG")
         self.config = self._read_yaml(config_fp)
         self.error = []
+        self._setup_logging()
 
     def connect_signals(self) -> None:
         """Connect signals to slots."""
@@ -79,6 +82,13 @@ class Widget(QWidget):
         self.ui.submitPushButton.clicked.connect(self.submit_button_clicked)
         self.ui.userNameLineEdit.textChanged.connect(self.check_submit_button)
         self.ui.sessionIdLineEdit.textChanged.connect(self.check_submit_button)
+
+    def _setup_logging(self, log_dir: Path=None) -> None:
+        if not log_dir:
+            log_dir = Path(".")
+        if not log_dir.exists():
+            log_dir.mkdir(parents=True)
+        setup_logging(log_file=log_dir / "prepare_transfer.log")
 
     def _read_yaml(self, file_path: str) -> dict:
         """loads and returns yaml file contents as dict
@@ -184,7 +194,7 @@ class Widget(QWidget):
             c for c in Path(self.config["behavior_dir"]).glob(f"{session_id}*.json")
         ]
         if len(camera_json) < 3:
-            print("Less than 3 camera jsons found")
+            logging.info("Less than 3 camera jsons found")
         if len(camera_json) == 0:
             return False
         with open(camera_json[0], "rb") as j:
@@ -216,6 +226,7 @@ class Widget(QWidget):
         user_name: str
             full name of user
         """
+        logging.info("Generating user settings")
         user_input = JobSettings(
             input_source=self.config["acquisition_dir"] + "/" + session_id,
             behavior_source=self.config["behavior_dir"],
@@ -359,6 +370,7 @@ class Widget(QWidget):
         session_id: str
             session id
         """
+        logging.info("Generating manifest file")
         platform = self.config["platform"]
         name = (
             platform.replace("_", "-")
@@ -428,9 +440,10 @@ class Widget(QWidget):
         """Runs job to retrieve data from user inputs.
         If successful will drop a UserSettings.json in the acquisition directory.
         """
-        print("Submit button clicked")
+        logging.info("Submit button clicked")
         user_name = self.ui.userNameLineEdit.text()
         session_id = self.ui.sessionIdLineEdit.text()
+        logging.info(f"User name: {user_name}, Session ID: {session_id}")
         if not self._check_user(user_name):
             self.ui.error_message.showMessage("Enter a valid user name")
             return
