@@ -459,8 +459,11 @@ class Widget(QWidget):
                 "No camera metadata found: contact engineering"
             )
             return
-        start_time = behavior_data["RecordingReport"]["TimeStart"]
-        end_time = behavior_data["RecordingReport"]["TimeEnd"]
+        data_directory = Path(self.config["acquisition_dir"]) / session_id
+        sync_file = [
+            i for i in data_directory.glob("*.h5") if "full_field" not in str(i)
+        ][0]
+        start_time, end_time = self.get_start_end_times(sync_file)
         user_input = self._generate_user_settings(
             start_time, end_time, subject_id, project_id, session_id, user_name
         )
