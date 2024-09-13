@@ -1,13 +1,12 @@
 # This Python file uses the following encoding: utf-8
 import json
+import logging
 import os
 import sys
 from datetime import datetime as dt
 from datetime import timedelta
 from pathlib import Path
 from typing import Union
-from logging_config import setup_logging
-import logging
 
 import requests
 import yaml
@@ -16,9 +15,12 @@ from aind_data_schema_models.modalities import Modality
 from aind_data_schema_models.organizations import Organization
 from aind_data_schema_models.pid_names import PIDName
 from aind_data_schema_models.platforms import Platform
-from aind_metadata_mapper.mesoscope.session import JobSettings, MesoscopeEtl
+from aind_data_transfer_models.core import BucketType
+from aind_metadata_mapper.mesoscope.models import JobSettings
+from aind_metadata_mapper.mesoscope.session import MesoscopeEtl
 from PySide6.QtWidgets import QApplication, QWidget
 
+from aind_mesoscope_user_schema_ui.logging_config import setup_logging
 from aind_mesoscope_user_schema_ui.models.config import ModalityMapConfig
 from aind_mesoscope_user_schema_ui.sync_dataset import Sync
 
@@ -83,7 +85,7 @@ class Widget(QWidget):
         self.ui.userNameLineEdit.textChanged.connect(self.check_submit_button)
         self.ui.sessionIdLineEdit.textChanged.connect(self.check_submit_button)
 
-    def _setup_logging(self, log_dir: Path=None) -> None:
+    def _setup_logging(self, log_dir: Path = None) -> None:
         if not log_dir:
             log_dir = Path(".")
         if not log_dir.exists():
@@ -237,7 +239,7 @@ class Widget(QWidget):
             subject_id=subject_id,
             project=project_id,
             experimenter_full_name=[user_name],
-            optional_output=self.config["acquisition_dir"] + "/" + session_id
+            optional_output=self.config["acquisition_dir"] + "/" + session_id,
         )
         meso_etl = MesoscopeEtl(user_input)
         meso_etl.run_job()
@@ -252,7 +254,7 @@ class Widget(QWidget):
         funding_source: list,
         session_id: str,
         project: str,
-        project_id: str
+        project_id: str,
     ) -> dict:
         """Generate data description for session
 
@@ -290,7 +292,7 @@ class Widget(QWidget):
             investigators=investigators,
             funding_source=funding_source,
             project_name=project,
-            data_summary=project_id
+            data_summary=project_id,
         )
         serialized = raw_description.model_dump_json()
         deserialized = RawDataDescription.model_validate_json(serialized)
@@ -302,7 +304,7 @@ class Widget(QWidget):
     def _search_files(self, directory: str, files: list, extra_search_key=None) -> dict:
         """searches for files in a directory
 
-        Parameters 
+        Parameters
         ----------
         directory : str
             directory to search
@@ -387,13 +389,13 @@ class Widget(QWidget):
         acquisition_dir = Path(user_input["input_source"])
         behavior_dir = Path(user_input["behavior_source"])
         manifests = {}
-        manifests["ophys"] = self._search_files(
+        manifests[Modality.POPHYS] = self._search_files(
             acquisition_dir, self.config["modalities"]["ophys"]
         )  # TODO: this should be a parameter
-        manifests["behavior"] = self._search_files(
+        manifests[Modality.BEHAVIOR] = self._search_files(
             acquisition_dir, self.config["modalities"]["behavior"]
         )
-        manifests["behavior-videos"] = self._search_files(
+        manifests[Modality.BEHAVIOR_VIDEOS] = self._search_files(
             behavior_dir,
             self.config["modalities"]["behavior-videos"],
             extra_search_key=acquisition_dir.name,
@@ -410,7 +412,7 @@ class Widget(QWidget):
                 schemas.append(os.path.join(user_input["input_source"], i))
         manifest_file = dict(
             name=name,
-            platform=platform,
+            platform=Platform.MULTIPLANE_OPHYS,
             processor_full_name=user_input["experimenter_full_name"][0],
             subject_id=user_input["subject_id"],
             acquisition_datetime=start_time,
@@ -434,7 +436,12 @@ class Widget(QWidget):
             / f"manifest_{dt.now().strftime('%Y%m%d%H%M%S')}.yml",
             "w",
         ) as yam:
-            yaml.dump(modality_map.model_dump(), yam)
+            yaml.safe_dump(
+                modality_map.model_dump(),
+                yam,
+                default_flow_style=False,
+                allow_unicode=True,
+            )
 
     def submit_button_clicked(self) -> None:
         """Runs job to retrieve data from user inputs.
@@ -476,7 +483,7 @@ class Widget(QWidget):
             [Funding(funder=Organization.AI)],
             session_id,
             project_name,
-            project_id
+            project_id,
         )
         self._generate_manifest_file(user_input, data_description, session_id)
         self.ui.error_message.showMessage("User settings saved")

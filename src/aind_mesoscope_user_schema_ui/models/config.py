@@ -1,10 +1,12 @@
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
-from aind_data_schema_models.modalities import Modality
-from aind_data_schema_models.platforms import Platform
+from aind_data_schema_models import modalities, platforms
 from pydantic import BaseModel, Field, field_validator
+
+Platform = Literal[tuple(set(platforms.Platform.abbreviation_map.keys()))]
+Modality = Literal[tuple(set(modalities.Modality.abbreviation_map.keys()))]
 
 
 class ModalityMapConfig(BaseModel):
@@ -14,7 +16,7 @@ class ModalityMapConfig(BaseModel):
         description="Unique name for session data assets. Should follow AINDs schema for naming data assets",
         title="Unique name",
     )
-    platform: str = Field(description="Platform type", title="Platform type")
+    platform: Platform = Field(description="Platform type", title="Platform type")
     subject_id: int = Field(description="Subject ID", title="Subject ID")
     acquisition_datetime: datetime = Field(
         title="Acquisition datetime",
@@ -43,7 +45,7 @@ class ModalityMapConfig(BaseModel):
     mount: Optional[str] = Field(
         description="Mount point of the data", title="Mount point"
     )
-    modalities: Dict[str, List[str]] = Field(
+    modalities: Dict[Modality, List[str]] = Field(
         description="list of ModalityFile objects containing modality names and associated files",
         title="modality files",
     )
@@ -52,23 +54,6 @@ class ModalityMapConfig(BaseModel):
     processor_full_name: str = Field(
         description="Processor full name", title="Processor full name"
     )
-
-    @field_validator("modalities")
-    @classmethod
-    def verify_modality(cls, data: Dict[str, List[str]]) -> Dict[str, List[str]]:
-        for key in data.keys():
-            if key.lower() not in Modality._abbreviation_map:
-                raise ValueError(f"{key} not in accepted modalities")
-        return data
-
-    @field_validator("platform")
-    @classmethod
-    def verify_platform(cls, data: str) -> str:
-        if "_" in data:
-            data = data.replace("_", "-")
-        if data.lower() not in Platform._abbreviation_map:
-            raise ValueError(f"{data} not in accepted platforms")
-        return data
 
     @field_validator("destination")
     @classmethod
@@ -85,3 +70,32 @@ class ModalityMapConfig(BaseModel):
             if not Path(schema).exists():
                 raise ValueError(f"{schema} does not exist")
         return data
+
+    @field_validator("modalities", mode="before")
+    @classmethod
+    def normalize_modalities(cls, value) -> Dict[Modality, List[str]]:
+        """Normalize modalities"""
+        if isinstance(value, dict):
+            _ret: Dict[str, Any] = {}
+            for modality, v in value.items():
+                if isinstance(modality, getattr(modalities.Modality, "ALL")):
+                    key = getattr(modality, "abbreviation", None)
+                    if key is None:
+                        _ret[modality] = v
+                    else:
+                        _ret[key] = v
+                else:
+                    _ret[modality] = v
+            return _ret
+        else:
+            return value
+
+    @field_validator("platform", mode="before")
+    @classmethod
+    def normalize_platform(cls, value) -> Platform:
+        """Normalize modalities"""
+        if isinstance(value, getattr(platforms.Platform, "ALL")):
+            ret = getattr(value, "abbreviation", None)
+            return ret if ret else value
+        else:
+            return value
