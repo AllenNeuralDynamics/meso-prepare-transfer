@@ -34,38 +34,14 @@ class Widget(QWidget):
     _LIMS_URLS = {
         "session": "http://lims2/ophys_sessions.json?id={}",
     }
-    _PROJECT_MAPPING = {
-        "Learning mFISH-V1omFISH": [
-            "U01BFCT",
-            "omFISHSstMeso",
-            "omFISHGad2Meso",
-            "LearningmFISHDevelopment",
-            "LearningmFISHTask1A",
-            "omFISHCux2Meso",
-            "omFISHGad2Meso",
-            "omFISHRbp4Meso",
-        ],
-        "OpenScope": [
-            "OpenScopeDendriteCoupling",
-            "OpenScopeSequenceLearning",
-            "OpenscopeDevelopment",
-        ],
-    }
     _INVESTIGATORS = {
-        "U01BFCT": [PIDName(name="Anton Arkhipov"), PIDName(name="Marina Garrett")],
-        "omFISHSstMeso": [PIDName(name="Anton Arkhipov"), PIDName(name="Omid Zobeiri")],
-        "omFISHGad2Meso": [PIDName(name="Anton Arkhipov"), PIDName(name="Omid Zobeiri")],
-        "LearningmFISHDevelopment": [
+        "Learning mFISH-V1omFISH": [
             PIDName(name="Marina Garrett"),
             PIDName(name="Peter Groblewski"),
+            PIDName(name="Anton Arkhipov"),
+            PIDName(name="Omid Zobeiri"),
         ],
-        "LearningmFISHTask1A": [
-            PIDName(name="Marina Garrett"),
-            PIDName(name="Peter Groblewski"),
-        ],
-        "OpenScopeDendriteCoupling": [PIDName(name="Jerome Lecoq")],
-        "OpenScopeSequenceLearning": [PIDName(name="Jerome Lecoq")],
-        "OpenscopeDevelopment": [PIDName(name="Jerome Lecoq")],
+        "OpenScope": [PIDName(name="Jerome Lecoq")],
     }
 
     def __init__(self, parent=None):
@@ -460,6 +436,7 @@ class Widget(QWidget):
             self.ui.error_message.showMessage("Invalid session ID")
             return
         subject_id, project_id = self._project_and_mouse_id(session_data)
+        logging.info(f"Project ID: {project_id}, Subject ID: {subject_id}")
         behavior_data = self._behavior_cameras(session_id)
         if not behavior_data:
             self.ui.error_message.showMessage(
@@ -474,12 +451,16 @@ class Widget(QWidget):
         user_input = self._generate_user_settings(
             start_time, end_time, subject_id, project_id, session_id, user_name
         )
-        project_name = [k for k, v in self._PROJECT_MAPPING.items() if project_id in v][0]
+        logging.info("Project ID %s", project_id)
+        if "OpenScope" in project_id:
+            project_id = project_name = "OpenScope"
+        else:
+            project_name = "Learning mFISH-V1omFISH"
         data_description = self._generate_data_description(
             subject_id,
             start_time,
             Organization.AIND,
-            self._INVESTIGATORS[project_id],
+            self._INVESTIGATORS[project_name],
             [Funding(funder=Organization.AI)],
             session_id,
             project_name,
