@@ -13,7 +13,7 @@ transfer_time: "now"
 force_cloud_sync: true
 transfer_endpoint: "http://aind-data-transfer-service-dev/api/v1/submit_jobs"
 modalities: # What files and modalities service is expected to move; glob patterns OK
-  ophys: 
+  pophys: 
     - "*_averaged_depth.tiff"
     - "*_averaged_surface.tiff"
     - "*cortical_z_stack*.tiff"

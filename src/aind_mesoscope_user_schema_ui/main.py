@@ -418,6 +418,7 @@ class Widget(QWidget):
                 default_flow_style=False,
                 allow_unicode=True,
             )
+        logging.info("Manifest generated %s", self.config["manifest_directory"])
 
     def submit_button_clicked(self) -> None:
         """Runs job to retrieve data from user inputs.
