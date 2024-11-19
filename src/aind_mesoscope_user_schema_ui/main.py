@@ -366,7 +366,7 @@ class Widget(QWidget):
         behavior_dir = Path(user_input["behavior_source"])
         manifests = {}
         manifests[Modality.POPHYS] = self._search_files(
-            acquisition_dir, self.config["modalities"]["ophys"]
+            acquisition_dir, self.config["modalities"]["pophys"]
         )  # TODO: this should be a parameter
         manifests[Modality.BEHAVIOR] = self._search_files(
             acquisition_dir, self.config["modalities"]["behavior"]
@@ -454,7 +454,7 @@ class Widget(QWidget):
         )
         logging.info("Project ID %s", project_id)
         if "OpenScope" in project_id:
-            project_id = project_name = "OpenScope"
+            project_name = "OpenScope"
         else:
             project_name = "Learning mFISH-V1omFISH"
         data_description = self._generate_data_description(
