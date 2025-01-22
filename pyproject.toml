@@ -26,7 +26,8 @@ dependencies = [
     'pyyaml',
     'pyinstaller',
     'h5py',
-    'scipy'
+    'scipy',
+    'numpy==1.26.4',
 ]
 
 [project.optional-dependencies]
