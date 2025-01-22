@@ -496,9 +496,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--username", type=str, default=None)
     parser.add_argument("--session-id", type=str, default=None)
-    args = parser.parse_args(sys.argv)
+    args = parser.parse_args(sys.argv[1:])
 
-    app = QApplication(sys.argv)
+    app = QApplication(sys.argv[1:])
     widget = Widget()
 
     if args.username is None and args.session_id is None:
