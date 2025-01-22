@@ -7,7 +7,8 @@
 ![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen?logo=codecov)
 ![Python](https://img.shields.io/badge/python->=3.7-blue?logo=python)
 
-
+## Usage
+- `python src\aind_mesoscope_user_schema_ui\main.py --username "Patrick Latimer" --session-id "610489749"`
 
 ## Usage
  - To use this template, click the green `Use this template` button and `Create new repository`.
