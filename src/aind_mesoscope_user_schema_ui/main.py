@@ -490,9 +490,6 @@ class Widget(QWidget):
             project_id,
         )
         self._generate_manifest_file(user_input, data_description, session_id)
-        self.ui.error_message.showMessage("User settings saved")
-        self.ui.userNameLineEdit.clear()
-        self.ui.sessionIdLineEdit.clear()
 
 
 if __name__ == "__main__":
@@ -506,7 +503,6 @@ if __name__ == "__main__":
 
     if args.username is None and args.session_id is None:
         widget.show()
+        sys.exit(app.exec())
     else:
         widget.process_everything(args.username, args.session_id)
-
-    sys.exit(app.exec())
