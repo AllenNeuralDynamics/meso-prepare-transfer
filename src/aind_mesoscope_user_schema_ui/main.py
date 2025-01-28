@@ -490,6 +490,7 @@ class Widget(QWidget):
             project_id,
         )
         self._generate_manifest_file(user_input, data_description, session_id)
+        return True
 
 
 if __name__ == "__main__":
@@ -505,4 +506,6 @@ if __name__ == "__main__":
         widget.show()
         sys.exit(app.exec())
     else:
-        widget.process_everything(args.username, args.session_id)
+        success = widget.process_everything(args.username, args.session_id)
+        if not success:
+            sys.exit(1)
