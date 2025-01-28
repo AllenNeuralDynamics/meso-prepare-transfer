@@ -7,7 +7,14 @@
 ![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen?logo=codecov)
 ![Python](https://img.shields.io/badge/python->=3.7-blue?logo=python)
 
+## Usage
+- `python src\aind_mesoscope_user_schema_ui\main.py --username "Patrick Latimer" --session-id "610489749"`
 
+## Build
+- `pip install -e .`
+- `python build.py`
+- Copy dist/prepare_transfer folder to target
+- Make sure MESO_USER_SETTING_CONFIG is set as an environment variable pointing to the config file
 
 ## Usage
  - To use this template, click the green `Use this template` button and `Create new repository`.

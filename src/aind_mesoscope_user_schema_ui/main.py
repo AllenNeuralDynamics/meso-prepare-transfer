@@ -1,4 +1,5 @@
 # This Python file uses the following encoding: utf-8
+import argparse
 import json
 import logging
 import os
@@ -431,15 +432,36 @@ class Widget(QWidget):
         if not self._check_user(user_name):
             self.ui.error_message.showMessage("Enter a valid user name")
             return
+
+        self.process_everything(user_name, session_id)
+
+        self.ui.error_message.showMessage("User settings saved")
+        self.ui.userNameLineEdit.clear()
+        self.ui.sessionIdLineEdit.clear()
+
+    def check_submit_button(self) -> None:
+        """Checks conditions to see if the submit button can be enabled."""
+        if self.ui.userNameLineEdit.text() and self.ui.sessionIdLineEdit.text():
+            self.ui.submitPushButton.setEnabled(True)
+        else:
+            self.ui.submitPushButton.setEnabled(False)
+
+    def process_everything(self, user_name: str, session_id: str):
+        """Runs job to retrieve data from user inputs.
+        If successful will drop a UserSettings.json in the acquisition directory.
+        """
+
         session_response = self._get_lims_response(session_id, "session")
         session_data = self._session_data(session_response)
         if not session_data:
+            logging.error("Invalid session ID")
             self.ui.error_message.showMessage("Invalid session ID")
             return
         subject_id, project_id = self._project_and_mouse_id(session_data)
         logging.info(f"Project ID: {project_id}, Subject ID: {subject_id}")
         behavior_data = self._behavior_cameras(session_id)
         if not behavior_data:
+            logging.error("No camera metadata found: contact engineering")
             self.ui.error_message.showMessage(
                 "No camera metadata found: contact engineering"
             )
@@ -468,20 +490,19 @@ class Widget(QWidget):
             project_id,
         )
         self._generate_manifest_file(user_input, data_description, session_id)
-        self.ui.error_message.showMessage("User settings saved")
-        self.ui.userNameLineEdit.clear()
-        self.ui.sessionIdLineEdit.clear()
-
-    def check_submit_button(self) -> None:
-        """Checks conditions to see if the submit button can be enabled."""
-        if self.ui.userNameLineEdit.text() and self.ui.sessionIdLineEdit.text():
-            self.ui.submitPushButton.setEnabled(True)
-        else:
-            self.ui.submitPushButton.setEnabled(False)
 
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--username", type=str, default=None)
+    parser.add_argument("--session-id", type=str, default=None)
+    args = parser.parse_args(sys.argv[1:])
+
+    app = QApplication(sys.argv[1:])
     widget = Widget()
-    widget.show()
-    sys.exit(app.exec())
+
+    if args.username is None and args.session_id is None:
+        widget.show()
+        sys.exit(app.exec())
+    else:
+        widget.process_everything(args.username, args.session_id)
