@@ -1,7 +1,7 @@
 """Logging configuration"""
 
 import logging
-
+import sys
 
 def setup_logging(log_file=None, log_level=logging.INFO):
     """Create log handler
@@ -30,3 +30,10 @@ def setup_logging(log_file=None, log_level=logging.INFO):
         file_handler = logging.FileHandler(log_file)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
+
+    # Define a global exception handler
+    def handle_exception(exc_type, exc_value, exc_traceback):
+        logger.error("Uncaught exception occurred", exc_info=(exc_type, exc_value, exc_traceback))
+
+    # Set the global exception handler
+    sys.excepthook = handle_exception
