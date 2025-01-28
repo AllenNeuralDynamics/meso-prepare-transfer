@@ -10,6 +10,12 @@
 ## Usage
 - `python src\aind_mesoscope_user_schema_ui\main.py --username "Patrick Latimer" --session-id "610489749"`
 
+## Build
+- `pip install -e .`
+- `python build.py`
+- Copy dist/prepare_transfer folder to target
+- Make sure MESO_USER_SETTING_CONFIG is set as an environment variable pointing to the config file
+
 ## Usage
  - To use this template, click the green `Use this template` button and `Create new repository`.
  - After github initially creates the new repository, please wait an extra minute for the initialization scripts to finish organizing the repo.
