@@ -11,9 +11,14 @@
 - `python src\aind_mesoscope_user_schema_ui\main.py --username "Patrick Latimer" --session-id "610489749"`
 
 ## Build
+- Create a fresh Python 3.11 environment
 - `pip install -e .`
 - `python build.py`
-- Copy dist/prepare_transfer folder to target
+- Verify prepare_transfer.exe and _internal folder in dist/
+
+ ## Deployment
+- After build, copy prepare_transfer.exe and _internal folder to `\\allen\aibs\mpe\Software\mesoscope_prepare_transfer\<version_number>`
+- Coordinate with Keith to copy artifacts to mesoscopes (`\\meso1acq\c$\ProgramData\aind\prepare_transfer\`)
 - Make sure MESO_USER_SETTING_CONFIG is set as an environment variable pointing to the config file
 
 ## Usage
