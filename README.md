@@ -21,6 +21,9 @@
 - Coordinate with Keith to copy artifacts to mesoscopes (`\\meso1acq\c$\ProgramData\aind\prepare_transfer\`)
 - Make sure MESO_USER_SETTING_CONFIG is set as an environment variable pointing to the config file
 
+-----------------------------
+## Template info
+
 ## Usage
  - To use this template, click the green `Use this template` button and `Create new repository`.
  - After github initially creates the new repository, please wait an extra minute for the initialization scripts to finish organizing the repo.
