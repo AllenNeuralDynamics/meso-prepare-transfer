@@ -18,7 +18,7 @@ dynamic = ["version"]
 
 dependencies = [
     'PySide6==6.6.3',
-    'aind-data-schema==1.0.0',
+    'aind-data-schema==1.1.0',
     'aind-data-schema-models==0.4.4',
     'aind-data-transfer-models==0.15.2',
     'aind-metadata-mapper[mesoscope]==0.18.2',
