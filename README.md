@@ -11,6 +11,7 @@
 - `python src\aind_mesoscope_user_schema_ui\main.py --username "Patrick Latimer" --session-id "610489749"`
 
 ## Build
+- Update version number in `__init__.py`
 - Create a fresh Python 3.11 environment
 - `pip install -e .`
 - `python build.py`
