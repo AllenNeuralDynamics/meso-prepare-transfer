@@ -64,7 +64,8 @@ class Widget(QWidget):
 
     def _setup_logging(self, log_dir: Path = None) -> None:
         if not log_dir:
-            log_dir = Path(".")
+            # log_dir = Path(".")
+            log_dir = Path("C:\\ProgramData\\aind\\prepare_transfer")
         if not log_dir.exists():
             log_dir.mkdir(parents=True)
         setup_logging(log_file=log_dir / "prepare_transfer.log")
