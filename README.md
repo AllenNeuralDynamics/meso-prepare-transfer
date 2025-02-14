@@ -9,6 +9,9 @@
 
 ## Usage
 - `python src\aind_mesoscope_user_schema_ui\main.py --username "Patrick Latimer" --session-id "610489749"`
+- `path/to/prepare_transfer.exe --username "Patrick Latimer" --session-id "610489749"`
+
+If you do not pass in arguments, it will open the GUI and prompt you to enter name and session id
 
 ## Build
 - Update version number in `__init__.py`
