@@ -363,7 +363,6 @@ class Widget(QWidget):
             + user_input["subject_id"]
             + "_"
             + start_time.strftime("%Y-%m-%d_%H-%M-%S")
-            # + dt.now().strftime("%Y-%m-%d_%H-%M-%S")
         )
         acquisition_dir = Path(user_input["input_source"])
         behavior_dir = Path(user_input["behavior_source"])
@@ -412,7 +411,7 @@ class Widget(QWidget):
             Path(self.config["manifest_directory"]).mkdir()
         with open(
             Path(self.config["manifest_directory"])
-            / f"manifest_{dt.now().strftime('%Y%m%d%H%M%S')}.yml",
+            / f"manifest_{start_time.strftime('%Y%m%d%H%M%S')}.yml",
             "w",
         ) as yam:
             yaml.safe_dump(
