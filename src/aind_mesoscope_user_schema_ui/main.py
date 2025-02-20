@@ -311,7 +311,7 @@ class Widget(QWidget):
             self.ui.error_message.showMessage(f"No files found in {directory}")
         return found_files
 
-    def get_start_end_times(self, sync_file: Path) -> tuple:
+    def get_start_end_times(self, sync_file: Path) -> tuple[dt, dt]:
         """Gets the start and end times from the sync file based
         on the stimulus trigger line (rising edge for start, falling edge for end)
 
@@ -352,18 +352,19 @@ class Widget(QWidget):
         """
         logging.info("Generating manifest file")
         platform = self.config["platform"]
-        name = (
-            platform.replace("_", "-")
-            + "_"
-            + user_input["subject_id"]
-            + "_"
-            + dt.now().strftime("%Y-%m-%d_%H-%M-%S")
-        )
         data_directory = Path(self.config["acquisition_dir"]) / session_id
         sync_file = [
             i for i in data_directory.glob("*.h5") if "full_field" not in str(i)
         ][0]
         start_time, _ = self.get_start_end_times(sync_file)
+        name = (
+            platform.replace("_", "-")
+            + "_"
+            + user_input["subject_id"]
+            + "_"
+            + start_time.strftime("%Y-%m-%d_%H-%M-%S")
+            # + dt.now().strftime("%Y-%m-%d_%H-%M-%S")
+        )
         acquisition_dir = Path(user_input["input_source"])
         behavior_dir = Path(user_input["behavior_source"])
         manifests = {}
