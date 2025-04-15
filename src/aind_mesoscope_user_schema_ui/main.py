@@ -389,7 +389,7 @@ class Widget(QWidget):
             else:
                 schemas.append(os.path.join(user_input["input_source"], i))
         manifest_file = dict(
-            name=name,
+            # name=name,
             platform=Platform.MULTIPLANE_OPHYS,
             processor_full_name=user_input["experimenter_full_name"][0],
             subject_id=user_input["subject_id"],
@@ -405,6 +405,7 @@ class Widget(QWidget):
             project_name=data_description["project_name"],
             transfer_endpoint=self.config["transfer_endpoint"],
             force_cloud_sync=self.config["force_cloud_sync"],
+            extra_identifying_info={'ophys_session_id': session_id},
         )
         modality_map = ModalityMapConfig(**manifest_file)
         if not Path(self.config["manifest_directory"]).exists():
