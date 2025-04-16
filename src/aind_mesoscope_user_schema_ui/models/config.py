@@ -54,6 +54,7 @@ class ModalityMapConfig(BaseModel):
     processor_full_name: str = Field(
         description="Processor full name", title="Processor full name"
     )
+    extra_identifying_info: Optional[dict] = None
 
     @field_validator("destination")
     @classmethod
