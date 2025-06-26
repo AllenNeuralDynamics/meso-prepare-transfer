@@ -21,7 +21,7 @@ dependencies = [
     'aind-data-schema==1.2.0',
     'aind-data-schema-models==0.7.5',
     'aind-data-transfer-models==0.5.5',
-    'aind-metadata-mapper[mesoscope]==0.27.0',
+    'aind-metadata-mapper[mesoscope]==0.27.2',
     'requests',
     'pyyaml',
     'pyinstaller',
