@@ -262,7 +262,11 @@ class Widget(QWidget):
         """
 
         raw_description = RawDataDescription(
-            modality=[Modality.POPHYS, Modality.BEHAVIOR_VIDEOS],
+            modality=[
+                Modality.POPHYS,
+                Modality.BEHAVIOR_VIDEOS,
+                Modality.BEHAVIOR
+            ],
             platform=Platform.MULTIPLANE_OPHYS,
             subject_id=subject_id,
             creation_time=start_time,
