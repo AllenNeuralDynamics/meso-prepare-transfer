@@ -10,7 +10,7 @@ Modality = Literal[tuple(set(modalities.Modality.abbreviation_map.keys()))]
 
 
 class ModalityMapConfig(BaseModel):
-    """Template to verify all files that need to be uploaded"""
+    """Model representing aind-watchdog-service manifest"""
 
     name: str = Field(
         description="Unique name for session data assets. Should follow AINDs schema for naming data assets",

@@ -21,6 +21,8 @@ from aind_metadata_mapper.mesoscope.models import JobSettings
 from aind_metadata_mapper.mesoscope.session import MesoscopeEtl
 from PySide6.QtWidgets import QApplication, QWidget
 
+from aind_mesoscope_user_schema_ui.config import Config
+from aind_mesoscope_user_schema_ui import APP_NAME, __version__
 from aind_mesoscope_user_schema_ui.logging_config import setup_logging
 from aind_mesoscope_user_schema_ui.models.config import ModalityMapConfig
 from aind_mesoscope_user_schema_ui.sync_dataset import Sync
@@ -50,8 +52,9 @@ class Widget(QWidget):
         self.ui = UiUserSettings()
         self.ui.setupUi(self)
         self.connect_signals()
-        config_fp = os.getenv("MESO_USER_SETTING_CONFIG")
-        self.config = self._read_yaml(config_fp)
+        # config_fp = os.getenv("MESO_USER_SETTING_CONFIG")
+        # self.config = self._read_yaml(config_fp)
+        self.config = dict(Config())
         self.error = []
         self._setup_logging()
 
@@ -68,7 +71,12 @@ class Widget(QWidget):
             log_dir = Path("C:\\ProgramData\\aind\\prepare_transfer")
         if not log_dir.exists():
             log_dir.mkdir(parents=True)
-        setup_logging(log_file=log_dir / "prepare_transfer.log")
+        setup_logging(
+            app_name=APP_NAME,
+            app_version=__version__,
+            log_file=log_dir / "prepare_transfer.log",
+            logserver_url=self.config.get('logserver_url', "eng-logtools.corp.alleninstitute.org:9000"),
+        )
 
     def _read_yaml(self, file_path: str) -> dict:
         """loads and returns yaml file contents as dict
