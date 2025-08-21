@@ -7,7 +7,7 @@ import sys
 from datetime import datetime as dt
 from datetime import timedelta
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional
 
 import requests
 import yaml
@@ -262,11 +262,7 @@ class Widget(QWidget):
         """
 
         raw_description = RawDataDescription(
-            modality=[
-                Modality.POPHYS,
-                Modality.BEHAVIOR_VIDEOS,
-                Modality.BEHAVIOR
-            ],
+            modality=[Modality.POPHYS, Modality.BEHAVIOR_VIDEOS, Modality.BEHAVIOR],
             platform=Platform.MULTIPLANE_OPHYS,
             subject_id=subject_id,
             creation_time=start_time,
@@ -499,7 +495,7 @@ class Widget(QWidget):
         return True
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--username", type=str, default=None)
     parser.add_argument("--session-id", type=str, default=None)
@@ -515,3 +511,7 @@ if __name__ == "__main__":
         success = widget.process_everything(args.username, args.session_id)
         if not success:
             sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
