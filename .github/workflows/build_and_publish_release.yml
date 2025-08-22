@@ -21,7 +21,7 @@ jobs:
           echo "Project Name: $name"
           echo "name=$name" >> $env:GITHUB_OUTPUT
 
-  build: 
+  build-and-publish: 
     runs-on: windows-latest
     needs: extract-info
     outputs:
@@ -30,6 +30,8 @@ jobs:
       UV_PYTHON_INSTALL_DIR: C:\ProgramData\AIBS_MPE\uv_python
       UV_TOOL_DIR: C:\ProgramData\AIBS_MPE\uv_python
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
       - name: Install UV 
         uses: astral-sh/setup-uv@v5
       - name: Echo extracted project info
@@ -42,19 +44,12 @@ jobs:
       - name: Create zip
         run: |
           Compress-Archive -Path dist/* -DestinationPath ${{ needs.extract-info.outputs.project-name }}.zip
-  
-  publish: 
-    runs-on: windows-latest
-    needs: build 
-    outputs:
-      project-name: ${{ needs.build.outputs.project-name }}
-    steps: 
-      - name: Create GitHub Release
+      - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ needs.build.outputs.project-name }}.zip
+            ${{ needs.extract-info.outputs.project-name }}.zip
           tag_name: ${{ github.ref_name }}
-          body: "Automated release of ${{ needs.build.outputs.project-name }}"
+          body: "Automated release of ${{ needs.extract-info.outputs.project-name }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
