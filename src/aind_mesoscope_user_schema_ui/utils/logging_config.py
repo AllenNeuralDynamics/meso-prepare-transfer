@@ -2,9 +2,12 @@
 
 import logging
 import logging.handlers
+from math import log
 import sys
 import os
 from typing import Optional
+
+from aind_mesoscope_user_schema_ui.utils.source_config import AppInfo
 
 
 class LogServerHandler(logging.handlers.SocketHandler):
@@ -14,18 +17,12 @@ class LogServerHandler(logging.handlers.SocketHandler):
 
     def __init__(
         self,
-        project_name,
-        version,
-        rig_id=os.getenv("aibs_rig_id", "unknown"),
-        comp_id=os.getenv("aibs_comp_id", "unknown"),
+        app_info: AppInfo,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        self.project_name = project_name
-        self.rig_id = rig_id
-        self.comp_id = comp_id
-        self.version = version
+        self.app_info = app_info
         self.formatter = logging.Formatter(
             datefmt="%Y-%m-%d %H:%M:%S",
             fmt="%(asctime)s\n%(name)s\n%(levelname)s\n%(funcName)s (%(filename)s:%(lineno)d)\n%(message)s",
@@ -33,18 +30,16 @@ class LogServerHandler(logging.handlers.SocketHandler):
 
     def emit(self, record: logging.LogRecord) -> None:
         # Add extra attributes to the record
-        record.project = self.project_name
-        record.rig_id = self.rig_id
-        record.comp_id = self.comp_id
-        record.version = self.version
+        record.project = self.app_info.name
+        record.version = self.app_info.version
+        record.rig_id = self.app_info.rig_id
+        record.comp_id = self.app_info.comp_id
         record.extra = None  # set extra to None because this sends a pickled record
         super().emit(record)
 
 
 def setup_logging(
-    app_name: str,
-    app_version: str,
-    log_file: Optional[str] = None,
+    app_info: AppInfo,
     logserver_url: Optional[str] = None,
     log_level=logging.INFO,
 ):
@@ -70,20 +65,19 @@ def setup_logging(
     logger.addHandler(console_handler)
 
     # If log_file is provided, add a file handler
-    if log_file:
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+    file_handler = logging.FileHandler(app_info.log_file_path)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
     # Set up log server handler
-    logger.addHandler(
-        LogServerHandler(
-            host=logserver_url.split(":")[0],
-            port=int(logserver_url.split(":")[1]),
-            project_name=app_name,
-            version=app_version,
+    if logserver_url:
+        logger.addHandler(
+            LogServerHandler(
+                app_info,
+                host=logserver_url.split(":")[0],
+                port=int(logserver_url.split(":")[1]),
+            )
         )
-    )
 
     # Define a global exception handler
     def handle_exception(exc_type, exc_value, exc_traceback):

@@ -1,35 +1,14 @@
 from pathlib import Path
 
-from platformdirs import site_data_dir
-from pydantic_settings import (
-    BaseSettings,
-    PydanticBaseSettingsSource,
-    YamlConfigSettingsSource,
-)
+from aind_mesoscope_user_schema_ui.utils.source_config import SuperConfig, AppInfo
+from aind_mesoscope_user_schema_ui import __version__
 
-from aind_mesoscope_user_schema_ui import APP_NAME
-
-app_data_dir = Path(
-    site_data_dir(
-        APP_NAME,
-        appauthor="AllenInstitute",
-        ensure_exists=True,
-    )
-)
-
-config_file = app_data_dir / "config" / f"{APP_NAME}.yml"
+app_info = AppInfo(name="meso_prepare_transfer", version=__version__)
 
 
-class Config(
-    BaseSettings,
-    validate_default=True,
-    extra="ignore",
-    yaml_file=config_file,
-    cli_parse_args=True,
-    cli_ignore_unknown_args=True,
-):
+class Config(SuperConfig, app_info=app_info):
+
     logserver_url: str = "eng-logtools.corp.alleninstitute.org:9000"
-    log_file: Path = app_data_dir / "logs" / f"{APP_NAME}.log"
 
     acquisition_dir: str = "D:/data"
     behavior_dir: str = "D:/behavior/data"
@@ -73,20 +52,7 @@ class Config(
         ],
     }
 
-    # Specify source loading order (yaml file, env vars, etc)
-    @classmethod
-    def settings_customise_sources(
-        cls,
-        settings_cls: type[BaseSettings],
-        init_settings: PydanticBaseSettingsSource,
-        env_settings: PydanticBaseSettingsSource,
-        dotenv_settings: PydanticBaseSettingsSource,
-        file_secret_settings: PydanticBaseSettingsSource,
-    ) -> tuple[PydanticBaseSettingsSource, ...]:
-        return (
-            init_settings,
-            env_settings,
-            dotenv_settings,
-            file_secret_settings,
-            YamlConfigSettingsSource(settings_cls),
-        )
+
+if __name__ == "__main__":
+    cfg = Config()
+    print(cfg.model_dump_json(indent=2))

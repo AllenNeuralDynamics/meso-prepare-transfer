@@ -21,9 +21,8 @@ from aind_metadata_mapper.mesoscope.models import JobSettings
 from aind_metadata_mapper.mesoscope.session import MesoscopeEtl
 from PySide6.QtWidgets import QApplication, QWidget
 
-from aind_mesoscope_user_schema_ui.config import Config
-from aind_mesoscope_user_schema_ui import APP_NAME, __version__
-from aind_mesoscope_user_schema_ui.logging_config import setup_logging
+from aind_mesoscope_user_schema_ui.config import Config, app_info
+from aind_mesoscope_user_schema_ui.utils.logging_config import setup_logging
 from aind_mesoscope_user_schema_ui.models.config import ModalityMapConfig
 from aind_mesoscope_user_schema_ui.sync_dataset import Sync
 
@@ -54,9 +53,9 @@ class Widget(QWidget):
         self.connect_signals()
         # config_fp = os.getenv("MESO_USER_SETTING_CONFIG")
         # self.config = self._read_yaml(config_fp)
-        self.config = dict(Config())
+        self.config = Config()
         self.error = []
-        self._setup_logging()
+        setup_logging(app_info, self.config.logserver_url)
 
     def connect_signals(self) -> None:
         """Connect signals to slots."""
@@ -65,34 +64,21 @@ class Widget(QWidget):
         self.ui.userNameLineEdit.textChanged.connect(self.check_submit_button)
         self.ui.sessionIdLineEdit.textChanged.connect(self.check_submit_button)
 
-    def _setup_logging(self, log_dir: Path = None) -> None:
-        if not log_dir:
-            # log_dir = Path(".")
-            log_dir = Path("C:\\ProgramData\\aind\\prepare_transfer")
-        if not log_dir.exists():
-            log_dir.mkdir(parents=True)
-        setup_logging(
-            app_name=APP_NAME,
-            app_version=__version__,
-            log_file=log_dir / "prepare_transfer.log",
-            logserver_url=self.config.get('logserver_url', "eng-logtools.corp.alleninstitute.org:9000"),
-        )
+    # def _read_yaml(self, file_path: str) -> dict:
+    #     """loads and returns yaml file contents as dict
 
-    def _read_yaml(self, file_path: str) -> dict:
-        """loads and returns yaml file contents as dict
+    #     Parameters
+    #     ----------
+    #     file_path : str
+    #         path to configuration
 
-        Parameters
-        ----------
-        file_path : str
-            path to configuration
-
-        Returns
-        -------
-        dict
-            config data
-        """
-        with open(file_path, "rb") as file:
-            return yaml.safe_load(file)
+    #     Returns
+    #     -------
+    #     dict
+    #         config data
+    #     """
+    #     with open(file_path, "rb") as file:
+    #         return yaml.safe_load(file)
 
     def _get_lims_response(self, lims_entry: str, api: str) -> requests.Response:
         """Returns lims response.
@@ -179,7 +165,7 @@ class Widget(QWidget):
             camera metadata or false
         """
         camera_json = [
-            c for c in Path(self.config["behavior_dir"]).glob(f"{session_id}*.json")
+            c for c in Path(self.config.behavior_dir).glob(f"{session_id}*.json")
         ]
         if len(camera_json) < 3:
             logging.info("Less than 3 camera jsons found")
@@ -216,16 +202,16 @@ class Widget(QWidget):
         """
         logging.info("Generating user settings")
         user_input = JobSettings(
-            input_source=self.config["acquisition_dir"] + "/" + session_id,
-            behavior_source=self.config["behavior_dir"],
+            input_source=self.config.acquisition_dir + "/" + session_id,
+            behavior_source=self.config.behavior_dir,
             session_id=session_id,
-            output_directory=self.config["acquisition_dir"] + "/" + session_id,
+            output_directory=self.config.acquisition_dir + "/" + session_id,
             session_start_time=start_time,
             session_end_time=end_time,
             subject_id=subject_id,
             project=project_id,
             experimenter_full_name=[user_name],
-            optional_output=self.config["acquisition_dir"] + "/" + session_id,
+            optional_output=self.config.acquisition_dir + "/" + session_id,
         )
         meso_etl = MesoscopeEtl(user_input)
         meso_etl.run_job()
@@ -283,7 +269,7 @@ class Widget(QWidget):
         serialized = raw_description.model_dump_json()
         deserialized = RawDataDescription.model_validate_json(serialized)
         deserialized.write_standard_file(
-            output_directory=self.config["acquisition_dir"] + "/" + session_id,
+            output_directory=self.config.acquisition_dir + "/" + session_id,
         )
         return json.loads(serialized)
 
@@ -359,8 +345,8 @@ class Widget(QWidget):
             session id
         """
         logging.info("Generating manifest file")
-        platform = self.config["platform"]
-        data_directory = Path(self.config["acquisition_dir"]) / session_id
+        platform = self.config.platform
+        data_directory = Path(self.config.acquisition_dir) / session_id
         sync_file = [
             i for i in data_directory.glob("*.h5") if "full_field" not in str(i)
         ][0]
@@ -376,21 +362,21 @@ class Widget(QWidget):
         behavior_dir = Path(user_input["behavior_source"])
         manifests = {}
         manifests[Modality.POPHYS] = self._search_files(
-            acquisition_dir, self.config["modalities"]["pophys"]
+            acquisition_dir, self.config.modalities["pophys"]
         )  # TODO: this should be a parameter
         manifests[Modality.BEHAVIOR] = self._search_files(
-            acquisition_dir, self.config["modalities"]["behavior"]
+            acquisition_dir, self.config.modalities["behavior"]
         )
         manifests[Modality.BEHAVIOR_VIDEOS] = self._search_files(
             behavior_dir,
-            self.config["modalities"]["behavior-videos"],
+            self.config.modalities["behavior-videos"],
             extra_search_key=acquisition_dir.name,
         )  # TODO: this should be a parameter
         if self.error:
             self.ui.error_message.showMessage(f"Files not found: {self.error}")
             self.error = []
         schemas = []
-        for i in self.config["schemas"]:
+        for i in self.config.schemas:
             # If schema is not a file, that exists, pull it from the data directory
             if Path(i).is_file():
                 schemas.append(i)
@@ -404,22 +390,22 @@ class Widget(QWidget):
             acquisition_datetime=start_time,
             schedule_time=dt.now().replace(hour=3, minute=0, second=0, microsecond=0)
             + timedelta(days=1),
-            s3_bucket=self.config["s3_bucket"],
-            destination=self.config["destination"],
-            capsule_id=self.config["capsule_id"],
-            mount=self.config["mount"],
+            s3_bucket=self.config.s3_bucket,
+            destination=self.config.destination,
+            capsule_id=self.config.capsule_id,
+            mount=self.config.mount,
             modalities=manifests,
             schemas=schemas,
             project_name=data_description["project_name"],
-            transfer_endpoint=self.config["transfer_endpoint"],
-            force_cloud_sync=self.config["force_cloud_sync"],
+            transfer_endpoint=self.config.transfer_endpoint,
+            force_cloud_sync=self.config.force_cloud_sync,
             extra_identifying_info={"ophys_session_id": session_id},
         )
         modality_map = ModalityMapConfig(**manifest_file)
-        if not Path(self.config["manifest_directory"]).exists():
-            Path(self.config["manifest_directory"]).mkdir()
+        if not Path(self.config.manifest_directory).exists():
+            Path(self.config.manifest_directory).mkdir()
         with open(
-            Path(self.config["manifest_directory"])
+            Path(self.config.manifest_directory)
             / f"manifest_{start_time.strftime('%Y%m%d%H%M%S')}.yml",
             "w",
         ) as yam:
@@ -429,7 +415,7 @@ class Widget(QWidget):
                 default_flow_style=False,
                 allow_unicode=True,
             )
-        logging.info("Manifest generated %s", self.config["manifest_directory"])
+        logging.info("Manifest generated %s", self.config.manifest_directory)
 
     def submit_button_clicked(self) -> None:
         """Runs job to retrieve data from user inputs.
@@ -476,7 +462,7 @@ class Widget(QWidget):
                 "No camera metadata found: contact engineering"
             )
             return
-        data_directory = Path(self.config["acquisition_dir"]) / session_id
+        data_directory = Path(self.config.acquisition_dir) / session_id
         sync_file = [
             i for i in data_directory.glob("*.h5") if "full_field" not in str(i)
         ][0]
@@ -516,6 +502,11 @@ def main():
         widget.show()
         sys.exit(app.exec())
     else:
+        logging.info(
+            "Action, called from CLI, username, %s, session_id, %s",
+            args.username,
+            args.session_id,
+        )
         success = widget.process_everything(args.username, args.session_id)
         if not success:
             sys.exit(1)
