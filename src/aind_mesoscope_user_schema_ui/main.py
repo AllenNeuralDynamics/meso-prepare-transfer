@@ -20,10 +20,10 @@ from aind_data_transfer_models.core import BucketType
 from aind_metadata_mapper.mesoscope.models import JobSettings
 from aind_metadata_mapper.mesoscope.session import MesoscopeEtl
 from PySide6.QtWidgets import QApplication, QWidget
+from aind_watchdog_service.models import ManifestConfig
 
 from aind_mesoscope_user_schema_ui.config import Config, app_info
 from aind_mesoscope_user_schema_ui.utils.logging_config import setup_logging
-from aind_mesoscope_user_schema_ui.models.config import ModalityMapConfig
 from aind_mesoscope_user_schema_ui.sync_dataset import Sync
 
 # Important:
@@ -382,7 +382,7 @@ class Widget(QWidget):
                 schemas.append(i)
             else:
                 schemas.append(os.path.join(user_input["input_source"], i))
-        manifest_file = dict(
+        manifest_file = ManifestConfig(
             name=name,
             platform=Platform.MULTIPLANE_OPHYS,
             processor_full_name=user_input["experimenter_full_name"][0],
@@ -398,23 +398,25 @@ class Widget(QWidget):
             schemas=schemas,
             project_name=data_description["project_name"],
             transfer_endpoint=self.config.transfer_endpoint,
+            transfer_service_job_type=self.config.transfer_service_job_type,
             force_cloud_sync=self.config.force_cloud_sync,
             extra_identifying_info={"ophys_session_id": session_id},
         )
-        modality_map = ModalityMapConfig(**manifest_file)
-        if not Path(self.config.manifest_directory).exists():
-            Path(self.config.manifest_directory).mkdir()
-        with open(
-            Path(self.config.manifest_directory)
-            / f"manifest_{start_time.strftime('%Y%m%d%H%M%S')}.yml",
-            "w",
-        ) as yam:
-            yaml.safe_dump(
-                modality_map.model_dump(),
-                yam,
-                default_flow_style=False,
-                allow_unicode=True,
-            )
+        manifest_file.write_standard_file(output_directory=self.config.manifest_directory)
+        # modality_map = ModalityMapConfig(**manifest_file)
+        # if not Path(self.config.manifest_directory).exists():
+        #     Path(self.config.manifest_directory).mkdir()
+        # with open(
+        #     Path(self.config.manifest_directory)
+        #     / f"manifest_{start_time.strftime('%Y%m%d%H%M%S')}.yml",
+        #     "w",
+        # ) as yam:
+        #     yaml.safe_dump(
+        #         modality_map.model_dump(),
+        #         yam,
+        #         default_flow_style=False,
+        #         allow_unicode=True,
+        #     )
         logging.info("Manifest generated %s", self.config.manifest_directory)
 
     def submit_button_clicked(self) -> None:

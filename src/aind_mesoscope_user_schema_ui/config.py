@@ -1,3 +1,4 @@
+from typing import Optional
 from pathlib import Path
 
 from aind_mesoscope_user_schema_ui.utils.source_config import SuperConfig, AppInfo
@@ -10,16 +11,28 @@ class Config(SuperConfig, app_info=app_info):
 
     logserver_url: str = "eng-logtools.corp.alleninstitute.org:9000"
 
-    acquisition_dir: str = "D:/data"
-    behavior_dir: str = "D:/behavior/data"
+    acquisition_dir: str = "D:/scanimage_ophys/data"
+    behavior_dir: str  # = "//W10SV109650002/mvr/data"
+
+    # transfer_endpoint: str = "http://aind-data-transfer-service/api/v2/submit_jobs"
+    transfer_endpoint: str | None = None
+    transfer_service_job_type: str = "multi_pophys_suite2p_cellpose"
 
     platform: str = "multiplane_ophys"
-    manifest_directory: str = "D:/aind-watchdog-service-manifest"
-    s3_bucket: str = "scratch"
-    capsule_id: str = "56bf687b-dbcd-4b93-a650-21b8584036ff"
-    mount: str = "multiplane-ophys_726433_2024-05-14_08-13-02"
+    manifest_directory: str = (
+        "C:/Users/svc_mesoscope/Documents/aind_watchdog_service/manifest"
+    )
+    s3_bucket: str = "open"
+    capsule_id: str = "e3ac6a41-c578-4798-b251-3b316674dce2"
+    mount: str = "ophys_mount"
     destination: str = "//allen/aind/scratch/2p-working-group/data-uploads"
-    schemas: list[str] = ["rig.json", "session.json"]
+    schemas: list[str] = [
+        "C:/ProgramData/aind/rig.json",
+        "session.json",
+        "data_description.json",
+    ]
+    # schedule_time: Optional[str] = 'now"'
+    force_cloud_sync: bool = True
 
     # What files and modalities service is expected to move; glob patterns OK
     modalities: dict[str, list[str]] = {
@@ -33,22 +46,29 @@ class Config(SuperConfig, app_info=app_info):
             "*platform.json",
             "*reticle.tif",
             "*surface.roi",
-            "*sync.h5",
             "*timeseries.roi",
             "*timeseries.tiff",
             "*vasculature.tif",
+            "*_timeseries_Motion*.csv",
+            "*_timeseries_Motion_Corrected*.csv",
+            "parent_session_depth_images/*_depth.tif",
+            "parent_session_surface_images/*_surface.tif",
+            "sorted_local_z_stacks/*.tif",
         ],
         "behavior-videos": [
-            "*Behavior*.mp4",
-            "*Face*.mp4",
-            "*Eye*.mp4",
-            "*Behavior*.json",
-            "*Face*.json",
-            "*Eye*.json",
+            -"*Behavior*.mp4"
+            - "*Face*.mp4"
+            - "*Eye*.mp4"
+            - "*Behavior*.json"
+            - "*Face*.json"
+            - "*Eye*.json"
+            - "*Nose*.mp4"
+            - "*Nose*.json"
         ],
         "behavior": [
             "*stim.pkl",
             "*stim_table.csv",
+            "*sync.h5",
         ],
     }
 

@@ -138,9 +138,6 @@ class HttpConfigSettingsSource(JsonConfigSettingsSource):
             )
             super().__init__(settings_cls, self.cache_file)
 
-            # TODO: we might want to save a failure flag file so the server failure is tracked
-            # self.write_failure_flag_file()
-
     def cache_return(self, data: str, app_info: AppInfo):
         """Cache the returned config data"""
         self.cache_file.parent.mkdir(parents=True, exist_ok=True)
@@ -148,11 +145,6 @@ class HttpConfigSettingsSource(JsonConfigSettingsSource):
         if self.cache_file.exists():
             if data == self.cache_file.read_text():
                 return
-
-            # TODO:
-            if self.check_for_failure_flag_file():
-                # Could be a merge conflict, select which one to use
-                pass
 
             # Backup previous config with timestamp
             timestamp = datetime.datetime.strftime(
