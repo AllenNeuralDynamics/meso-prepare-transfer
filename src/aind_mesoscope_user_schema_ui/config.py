@@ -56,14 +56,14 @@ class Config(SuperConfig, app_info=app_info):
             "sorted_local_z_stacks/*.tif",
         ],
         "behavior-videos": [
-            -"*Behavior*.mp4"
-            - "*Face*.mp4"
-            - "*Eye*.mp4"
-            - "*Behavior*.json"
-            - "*Face*.json"
-            - "*Eye*.json"
-            - "*Nose*.mp4"
-            - "*Nose*.json"
+            "*Behavior*.mp4",
+            "*Face*.mp4",
+            "*Eye*.mp4",
+            "*Behavior*.json",
+            "*Face*.json",
+            "*Eye*.json",
+            "*Nose*.mp4",
+            "*Nose*.json",
         ],
         "behavior": [
             "*stim.pkl",

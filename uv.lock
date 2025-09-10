@@ -120,7 +120,7 @@ requires-dist = [
     { name = "aind-data-schema", specifier = "==1.2.0" },
     { name = "aind-data-schema-models", specifier = "==0.7.5" },
     { name = "aind-data-transfer-models", specifier = "==0.5.5" },
-    { name = "aind-metadata-mapper", extras = ["mesoscope"], specifier = "==0.27.2" },
+    { name = "aind-metadata-mapper", extras = ["mesoscope"], specifier = "==0.28.2" },
     { name = "aind-watchdog-service", specifier = ">=0.1.6.dev2" },
     { name = "black", marker = "extra == 'dev'" },
     { name = "coverage", marker = "extra == 'dev'" },
@@ -142,15 +142,15 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "aind-metadata-mapper"
-version = "0.27.2"
+version = "0.28.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aind-data-schema-models" },
     { name = "pydantic-settings" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/54/27/59fb5053f1d1730be177bf635449360236987b5f6059b31c9dcd25569f01/aind_metadata_mapper-0.27.2.tar.gz", hash = "sha256:be0ca08e4e6d8db490f4112dd7f6352454f036d5dc7d30873c839c486e602251", size = 823739, upload-time = "2025-06-25T22:10:19.439Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d7/5e/a7feb52bfcddba679a88bab92ecfaa5311a9554a2dc6d25269457391f6bc/aind_metadata_mapper-0.28.2.tar.gz", hash = "sha256:e7a782122d3aac5d91eb31ae7c7480613194968eb215113737dd25846c505cee", size = 117619, upload-time = "2025-09-03T17:44:14.148Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/97/00/2602765bcdefd76a317ae9e6b9bd6b028ac0f4759763a27c977c421a896b/aind_metadata_mapper-0.27.2-py3-none-any.whl", hash = "sha256:ed24859c22ad07eb60e996149f4452edb8ce175d026c12c99c86f6815c2a3398", size = 133052, upload-time = "2025-06-25T22:10:17.712Z" },
+    { url = "https://files.pythonhosted.org/packages/f3/95/217b9ea1c3ad5d63efa045eb5ae4e01984c2721c16b647e9f49e2f279f74/aind_metadata_mapper-0.28.2-py3-none-any.whl", hash = "sha256:622c014b359918b1a12ce580401342bfb445d65714fbabea0b70748bce11c3d0", size = 130740, upload-time = "2025-09-03T17:44:12.139Z" },
 ]
 
 [package.optional-dependencies]

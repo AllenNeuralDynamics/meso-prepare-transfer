@@ -361,13 +361,13 @@ class Widget(QWidget):
         acquisition_dir = Path(user_input["input_source"])
         behavior_dir = Path(user_input["behavior_source"])
         manifests = {}
-        manifests[Modality.POPHYS] = self._search_files(
+        manifests[Modality.POPHYS.abbreviation] = self._search_files(
             acquisition_dir, self.config.modalities["pophys"]
         )  # TODO: this should be a parameter
-        manifests[Modality.BEHAVIOR] = self._search_files(
+        manifests[Modality.BEHAVIOR.abbreviation] = self._search_files(
             acquisition_dir, self.config.modalities["behavior"]
         )
-        manifests[Modality.BEHAVIOR_VIDEOS] = self._search_files(
+        manifests[Modality.BEHAVIOR_VIDEOS.abbreviation] = self._search_files(
             behavior_dir,
             self.config.modalities["behavior-videos"],
             extra_search_key=acquisition_dir.name,
@@ -384,7 +384,7 @@ class Widget(QWidget):
                 schemas.append(os.path.join(user_input["input_source"], i))
         manifest_file = ManifestConfig(
             name=name,
-            platform=Platform.MULTIPLANE_OPHYS,
+            platform=Platform.MULTIPLANE_OPHYS.abbreviation,
             processor_full_name=user_input["experimenter_full_name"][0],
             subject_id=user_input["subject_id"],
             acquisition_datetime=start_time,
