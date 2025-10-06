@@ -84,19 +84,6 @@ class Widget(QWidget):
         with open(file_path, "rb") as file:
             return yaml.safe_load(file)
 
-    def _get_lims_response(self, lims_entry: str, api: str) -> requests.Response:
-        """Returns lims response.
-
-        Parameters
-        ----------
-        lims_entry : str
-            LIMS entry.
-
-        Returns
-        -------
-        requests.Response
-        """
-        return requests.get(self._LIMS_URLS[api].format(lims_entry), timeout=2)
 
     def _check_user(self, user_name: str) -> bool:
         """verify there are two components to the string of the user input
@@ -115,45 +102,6 @@ class Widget(QWidget):
             return False
         else:
             return True
-
-    def _session_data(self, session_response: requests.Response) -> Union[bool, dict]:
-        """Validates lims session
-
-        Parameters
-        ----------
-        session_resposne: requests.Response
-
-        Returns
-        -------
-        Union[bool, dict]
-            session data or resposne
-        """
-        try:
-            session_data = session_response.json()[0]
-        except IndexError:
-            self.ui.error_message.showMessage("Invalid session ID")
-        try:
-            assert session_data
-            return session_data
-        except AssertionError:
-            return False
-
-    def _project_and_mouse_id(self, session_data: dict) -> tuple:
-        """returns project id and mouse id from session data
-
-        Parameters
-        ----------
-        session_data : dict
-            session data from lims response
-
-        Returns
-        -------
-        tuple
-            (subject id, project id)
-        """
-        subject_id = session_data["specimen"]["external_specimen_name"]
-        project_id = session_data["project"]["code"]
-        return subject_id, project_id
 
     def _behavior_cameras(self, session_id: str) -> Union[bool, dict]:
         """_summary_
@@ -431,12 +379,15 @@ class Widget(QWidget):
         if not self._check_user(user_name):
             self.ui.error_message.showMessage("Enter a valid user name")
             return
-        session_response = self._get_lims_response(session_id, "session")
-        session_data = self._session_data(session_response)
-        if not session_data:
-            self.ui.error_message.showMessage("Invalid session ID")
+        
+        platform_file = next(Path(self.config["acquisition_dir"]).rglob("*platform.json"), "")
+        if not platform_file:
+            self.ui.error_message.showMessage(
+                f"No platform.json found in {self.config['acquisition_dir']}"
+            )
             return
-        subject_id, project_id = self._project_and_mouse_id(session_data)
+        subject_id = platform_file["subject_id"]
+        project_id = platform_file["project_code"]
         logging.info(f"Project ID: {project_id}, Subject ID: {subject_id}")
         behavior_data = self._behavior_cameras(session_id)
         if not behavior_data:
