@@ -8,14 +8,12 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Union
 
-import requests
 import yaml
 from aind_data_schema.core.data_description import Funding, RawDataDescription
 from aind_data_schema_models.modalities import Modality
 from aind_data_schema_models.organizations import Organization
 from aind_data_schema_models.pid_names import PIDName
 from aind_data_schema_models.platforms import Platform
-from aind_data_transfer_models.core import BucketType
 from aind_metadata_mapper.mesoscope.models import JobSettings
 from aind_metadata_mapper.mesoscope.session import MesoscopeEtl
 from PySide6.QtWidgets import QApplication, QWidget
@@ -84,7 +82,6 @@ class Widget(QWidget):
         with open(file_path, "rb") as file:
             return yaml.safe_load(file)
 
-
     def _check_user(self, user_name: str) -> bool:
         """verify there are two components to the string of the user input
 
@@ -98,7 +95,7 @@ class Widget(QWidget):
         bool
             truth
         """
-        if not " " in user_name:
+        if " " not in user_name:
             return False
         else:
             return True
@@ -379,8 +376,10 @@ class Widget(QWidget):
         if not self._check_user(user_name):
             self.ui.error_message.showMessage("Enter a valid user name")
             return
-        
-        platform_file = next(Path(self.config["acquisition_dir"]).rglob("*platform.json"), "")
+
+        platform_file = next(
+            Path(self.config["acquisition_dir"]).rglob("*platform.json"), ""
+        )
         if not platform_file:
             self.ui.error_message.showMessage(
                 f"No platform.json found in {self.config['acquisition_dir']}"
