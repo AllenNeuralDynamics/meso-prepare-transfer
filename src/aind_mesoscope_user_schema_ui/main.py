@@ -377,16 +377,18 @@ class Widget(QWidget):
             self.ui.error_message.showMessage("Enter a valid user name")
             return
 
-        platform_file = next(
+        platform_fp = next(
             Path(self.config["acquisition_dir"]).rglob("*platform.json"), ""
         )
-        if not platform_file:
+        if not platform_fp:
             self.ui.error_message.showMessage(
                 f"No platform.json found in {self.config['acquisition_dir']}"
             )
             return
-        subject_id = platform_file["subject_id"]
-        project_id = platform_file["project_code"]
+        with open(platform_fp, "r") as pf:
+            platform_data = json.load(pf)
+        subject_id = platform_data["subject_id"]
+        project_id = platform_data["project_code"]
         logging.info(f"Project ID: {project_id}, Subject ID: {subject_id}")
         behavior_data = self._behavior_cameras(session_id)
         if not behavior_data:
