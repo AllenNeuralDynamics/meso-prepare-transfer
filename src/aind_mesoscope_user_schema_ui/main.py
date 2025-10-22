@@ -386,6 +386,9 @@ class Widget(QWidget):
                 schemas.append(i)
             else:
                 schemas.append(os.path.join(user_input["input_source"], i))
+        s3_bucket = self.config["s3_bucket"]
+        if 'OpenScope' in data_description['project_name']:
+            s3_bucket = "private"
         manifest_file = dict(
             name=name,
             platform=Platform.MULTIPLANE_OPHYS,
@@ -394,7 +397,7 @@ class Widget(QWidget):
             acquisition_datetime=start_time,
             schedule_time=dt.now().replace(hour=3, minute=0, second=0, microsecond=0)
             + timedelta(days=1),
-            s3_bucket=self.config["s3_bucket"],
+            s3_bucket=s3_bucket,
             destination=self.config["destination"],
             capsule_id=self.config["capsule_id"],
             mount=self.config["mount"],
