@@ -402,7 +402,7 @@ class Widget(QWidget):
             force_cloud_sync=self.config.force_cloud_sync,
             extra_identifying_info={"ophys_session_id": session_id},
         )
-        manifest_file.write_standard_file(output_directory=self.config.manifest_directory)
+        manifest_file.write_standard_file(self.config.manifest_directory)
         # modality_map = ModalityMapConfig(**manifest_file)
         # if not Path(self.config.manifest_directory).exists():
         #     Path(self.config.manifest_directory).mkdir()
