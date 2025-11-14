@@ -1,0 +1,55 @@
+name: Publish (eng-tools release)
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  extract-info:
+    runs-on: windows-latest
+    outputs:
+      project-name: ${{ steps.get_project_info.outputs.name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Extract project name from pyproject.toml
+        id: get_project_info
+        run: |
+          $content = Get-Content pyproject.toml
+          $name = ($content | Where-Object { $_ -match '^\s*name\s*=' }) -replace '.*=\s*"(.*)"', '$1'
+          echo "Project Name: $name"
+          echo "name=$name" >> $env:GITHUB_OUTPUT
+
+  build-and-publish: 
+    runs-on: windows-latest
+    needs: extract-info
+    outputs:
+      project-name: ${{ needs.extract-info.outputs.project-name }}
+    env: 
+      UV_PYTHON_INSTALL_DIR: C:\ProgramData\AIBS_MPE\uv_python
+      UV_TOOL_DIR: C:\ProgramData\AIBS_MPE\uv_python
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install UV 
+        uses: astral-sh/setup-uv@v5
+      - name: Echo extracted project info
+        run: |
+          echo "Project Name: ${{ needs.extract-info.outputs.project-name }}"
+      - name: Sync dependencies
+        run: uv sync
+      - name: Run build script
+        run: uv run build.py
+      - name: Create zip
+        run: |
+          Compress-Archive -Path dist/* -DestinationPath ${{ needs.extract-info.outputs.project-name }}.zip
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ needs.extract-info.outputs.project-name }}.zip
+          tag_name: ${{ github.ref_name }}
+          body: "Automated release of ${{ needs.extract-info.outputs.project-name }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
