@@ -2,24 +2,19 @@ from datetime import datetime, timedelta
 import requests
 from pathlib import Path
 import json
-import os
 
 from loguru import logger
 
-# from aind_data_schema.core.data_description import Funding, RawDataDescription
-from aind_data_schema_models.modalities import Modality
-
-# from aind_data_schema_models.organizations import Organization
-# from aind_data_schema_models.pid_names import PIDName
-from aind_data_schema_models.platforms import Platform
-
-# from aind_data_transfer_models.core import BucketType
-# from aind_metadata_mapper.mesoscope.models import JobSettings
-# from aind_metadata_mapper.mesoscope.session import MesoscopeEtl
 from aind_watchdog_service.models import ManifestConfig
+from aind_data_schema.core.data_description import Funding, RawDataDescription
+from aind_data_schema_models.modalities import Modality
+from aind_data_schema_models.organizations import Organization
+from aind_data_schema_models.pid_names import PIDName
+from aind_data_schema_models.platforms import Platform
+from aind_metadata_mapper.mesoscope.models import JobSettings
+from aind_metadata_mapper.mesoscope.session import MesoscopeEtl
 
 from meso_prepare_transfer.config import Config
-from meso_prepare_transfer.data_schema import generate_aind_metadata
 from meso_prepare_transfer.utils.sync_dataset import Sync
 
 
@@ -48,6 +43,26 @@ def query_lims(
 
 
 @logger.catch()
+def parse_platform_json(
+    data_directory: Path,
+) -> tuple[str, str]:
+    """Parse platform.json to get subject and project ID.
+
+    Raises:
+        FileNotFoundError: If platform.json is not found.
+        KeyError: If the platform.json data isn't formatted as expected.
+    """
+    platform_fp = next(data_directory.rglob("*platform.json"), "")
+    if not platform_fp:
+        raise FileNotFoundError(f"No platform.json found in {data_directory}")
+    with open(platform_fp, "r") as pf:
+        platform_data = json.load(pf)
+    subject_id = platform_data["subject_id"]
+    project_id = platform_data["project_code"]
+    return subject_id, project_id
+
+
+@logger.catch()
 def get_start_end_times(data_directory: Path) -> tuple[datetime, datetime]:
     """Gets the start and end times from the sync file based
     on the stimulus trigger line (rising edge for start, falling edge for end)
@@ -69,63 +84,59 @@ def get_start_end_times(data_directory: Path) -> tuple[datetime, datetime]:
     return sync_start + timedelta(seconds=acq_start[0]), sync_start + timedelta(seconds=acq_end[0])
 
 
-# def behavior_camera_data(session_id: str, behavior_data_dir: Path) -> list[dict]:
-#     camera_jsons = list(behavior_data_dir.glob(f"{session_id}*.json"))
+def generate_aind_metadata(
+    data_directory: Path,
+    behavior_dir: Path,
+    session_id: str,
+    user_name: str,
+    subject_id: str,
+    project_id: str,
+    start_time: str,
+    end_time: str,
+    config: Config,
+) -> tuple[dict, dict]:
+    logger.info("Generating Session Json")
 
-#     if len(camera_jsons) < 3:
-#         logger.info("Less than 3 camera jsons found")
+    session_metadata = JobSettings(
+        input_source=data_directory,
+        behavior_source=behavior_dir,
+        session_id=session_id,
+        output_directory=data_directory,
+        session_start_time=start_time,
+        session_end_time=end_time,
+        subject_id=subject_id,
+        project=project_id,
+        experimenter_full_name=[user_name],
+        optional_output=data_directory,
+    )
+    meso_etl = MesoscopeEtl(session_metadata)
+    meso_etl.run_job()
 
-#     if len(camera_jsons) == 0:
-#         raise ValueError("No camera json files found")
+    # session_json_contents = session_metadata.model_dump()
 
-#     json.loads(camera_jsons[0].read_text())
-#     return camera_jsons
+    if "OpenScope" in project_id:
+        data_schema_project_name = "OpenScope"
+    else:
+        data_schema_project_name = "Learning mFISH-V1omFISH"
 
+    investigators = [PIDName(name=inv) for inv in config.investigators[data_schema_project_name]]
 
-# def generate_aind_metadata(
-#     data_directory: Path,
-#     behavior_dir: Path,
-#     session_id: str,
-#     user_name: str,
-#     subject_id: str,
-#     project_id: str,
-#     config: Config,
-# ) -> dict:
-#     logger.info("Generating Session Json")
+    raw_description = RawDataDescription(
+        modality=[Modality.POPHYS, Modality.BEHAVIOR_VIDEOS, Modality.BEHAVIOR],
+        platform=Platform.MULTIPLANE_OPHYS,
+        subject_id=subject_id,
+        creation_time=start_time,
+        institution=Organization.AIND,
+        investigators=investigators,
+        funding_source=[Funding(funder=Organization.AIND)],
+        project_name=data_schema_project_name,
+        data_summary=project_id,
+    )
+    raw_description_json = raw_description.model_dump_json()
+    raw_description_revalidated = RawDataDescription.model_validate_json(raw_description_json)
+    raw_description_revalidated.write_standard_file(output_directory=data_directory)
 
-#     user_input = JobSettings(
-#         input_source=data_directory,
-#         behavior_source=behavior_dir,
-#         session_id=session_id,
-#         output_directory=data_directory,
-#         session_start_time=start_time,
-#         session_end_time=end_time,
-#         subject_id=subject_id,
-#         project=project_id,
-#         experimenter_full_name=[user_name],
-#         optional_output=data_directory,
-#     )
-#     meso_etl = MesoscopeEtl(user_input)
-#     meso_etl.run_job()
-
-#     session_json = user_input.model_dump()
-
-#     raw_description = RawDataDescription(
-#         modality=[Modality.POPHYS, Modality.BEHAVIOR_VIDEOS, Modality.BEHAVIOR],
-#         platform=Platform.MULTIPLANE_OPHYS,
-#         subject_id=subject_id,
-#         creation_time=start_time,
-#         institution=organization,
-#         investigators=investigators,
-#         funding_source=funding_source,
-#         project_name=project,
-#         data_summary=project_id,
-#     )
-#     serialized = raw_description.model_dump_json()
-#     deserialized = RawDataDescription.model_validate_json(serialized)
-#     deserialized.write_standard_file(
-#         output_directory=self.config.acquisition_dir + "/" + session_id,
-#     )
+    return session_metadata, raw_description_revalidated
 
 
 def search_files(
@@ -207,9 +218,12 @@ def generate_watchdog_manifest(
 
 def process_dataset(user_name: str, session_id: str, config: Config) -> bool:
     logger.info("Processing dataset", session_id=session_id, user_name=user_name)
-    subject_id, project_id = query_lims(session_id, config.session_endpoint)
+
+    # subject_id, project_id = query_lims(session_id, config.session_endpoint)
+    subject_id, project_id = parse_platform_json(config.acquisition_dir / session_id)
 
     logger.info(f"Project ID: {project_id}, Subject ID: {subject_id}")
+
     # behavior_data = behavior_camera_data(session_id, Path(config.behavior_dir))
     # behavior_data = self._behavior_cameras(session_id)
     # if not behavior_data:
