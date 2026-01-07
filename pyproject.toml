@@ -1,20 +1,12 @@
-[build-system]
-requires = ["setuptools", "setuptools-scm"]
-build-backend = "setuptools.build_meta"
-
 [project]
-name = "aind-mesoscope-user-schema-ui"
-description = "Generated from aind-library-template"
-license = {text = "MIT"}
-requires-python = ">=3.10"
-authors = [
-    {name = "Allen Institute for Neural Dynamics"}
-]
-classifiers = [
-    "Programming Language :: Python :: 3"
-]
+name = "meso-prepare-transfer"
+version = "1.0.0.dev0"
+description = "Adapter to prepare mesoscope session data for transfer to aind-data-transfer-service"
 readme = "README.md"
-dynamic = ["version"]
+authors = [
+    { name = "Patrick Latimer", email = "patrick.latimer@alleninstitute.org" }
+]
+requires-python = ">=3.12"
 
 dependencies = [
     'PySide6==6.6.3',
@@ -30,69 +22,21 @@ dependencies = [
     'numpy==1.26.4',
     "platformdirs>=4.3.8",
     "aind-watchdog-service>=0.1.6.dev2",
-]
-
-[project.optional-dependencies]
-dev = [
-    'black',
-    'coverage',
-    'flake8',
-    'interrogate',
-    'isort',
-    'Sphinx',
-    'furo',
+    "loguru>=0.7.3",
+    "cyclopts>=4.4.1",
 ]
 
 [project.scripts]
-prepare-transfer = "aind_mesoscope_user_schema_ui.main:main"
+meso-prepare-transfer = "meso_prepare_transfer.main:app"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.setuptools.dynamic]
-version = {attr = "aind_mesoscope_user_schema_ui.__version__"}
-
-[tool.uv]
-prerelease = "allow"
-
-[tool.black]
-line-length = 90
-target_version = ['py36']
-exclude = '''
-
-(
-  /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
-    | \.hg
-    | \.mypy_cache
-    | \.tox
-    | \.venv
-    | _build
-    | build
-    | dist
-  )/
-  | .gitignore
-)
-'''
-
-[tool.coverage.run]
-omit = ["*__init__*"]
-source = ["aind_mesoscope_user_schema_ui", "tests"]
-
-[tool.coverage.report]
-exclude_lines = [
-    "if __name__ == .__main__.:",
-    "from",
-    "import",
-    "pragma: no cover"
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
 ]
-fail_under = 100
 
-[tool.isort]
-line_length = 79
-profile = "black"
-
-[tool.interrogate]
-exclude = ["setup.py", "docs", "build"]
-fail-under = 100
+[tool.ruff]
+line-length = 120
