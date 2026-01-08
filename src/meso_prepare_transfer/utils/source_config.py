@@ -44,16 +44,13 @@ Depends on [
 import datetime
 import json
 from pathlib import Path
-import os
 from typing import TypeVar
-import platform
 import shutil
 import warnings
 import logging
 
 import requests
-from platformdirs import site_data_dir
-from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, JsonConfigSettingsSource
+from pydantic_settings import BaseSettings
 
 
 ##### Utilities
@@ -76,7 +73,7 @@ def fetch_config_from_server(
     rig_name: str,
     cache_file: Path,  # this could maybe have a default option
 ) -> Path:
-    """Fetch config from server"""
+    """Uses http GET to fetch config from server, caches locally"""
 
     url = config_server_url + app_name
 

@@ -1,3 +1,5 @@
+"""Entry point for meso-prepare-transfer tool"""
+
 import os
 import json
 
@@ -17,7 +19,8 @@ app = App()
 
 @app.default()
 def main(username: str, session_id: str):
-    logger.info('Fetching meso-prepare-transfer config from server')
+    """Fetch config, setup logging, process a single dataset"""
+    logger.info("Fetching meso-prepare-transfer config from server")
     config_file = fetch_config_from_server(
         config_server_url=os.getenv("ALLENINST_CONFIG_API_URL", "http://eng-tools:8888/api/v1beta/configs/projects/"),
         app_name=APP_NAME,

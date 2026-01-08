@@ -1,7 +1,7 @@
+"""App configuration"""
+
 from typing import Optional
 from pathlib import Path
-import os
-import json
 
 from pydantic_settings import BaseSettings
 
@@ -16,6 +16,8 @@ class Config(
     cli_parse_args=True,
     cli_ignore_unknown_args=True,
 ):
+    """Configuration used by meso-prepare-transfer, with defaults"""
+
     logserver_url: str = "eng-logtools.corp.alleninstitute.org:9000"
 
     acquisition_dir: Path = "D:/scanimage_ophys/data"

@@ -1,3 +1,5 @@
+"""Utilities for setting up loguru logging with integration to SIPE logserver"""
+
 import sys
 import os
 import queue
@@ -26,6 +28,7 @@ class LogServerHandler(logging.handlers.SocketHandler):
         *args,
         **kwargs,
     ):
+        """Set instance variables and formatter"""
         super().__init__(*args, **kwargs)
         self.project_name = project_name
         self.rig_id = rig_id
@@ -37,6 +40,7 @@ class LogServerHandler(logging.handlers.SocketHandler):
         )
 
     def emit(self, record: logging.LogRecord) -> None:
+        """Add instance variables to the log record before sending to log server"""
         # Add extra attributes to the record
         record.project = self.project_name
         record.rig_id = self.rig_id

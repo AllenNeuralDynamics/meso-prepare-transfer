@@ -1,3 +1,5 @@
+"""Functions to process a mesoscope dataset for transfer off-rig"""
+
 from datetime import datetime, timedelta
 import requests
 from pathlib import Path
@@ -18,6 +20,7 @@ from meso_prepare_transfer.config import Config
 from meso_prepare_transfer.utils.sync_dataset import Sync
 
 
+# TODO: Remove
 @logger.catch()
 def query_lims(
     session_id: str,
@@ -95,6 +98,7 @@ def generate_aind_metadata(
     end_time: str,
     config: Config,
 ) -> tuple[dict, dict]:
+    """Generates aind-data-schema compliant session.json and data_description.csv"""
     logger.info("Generating Session Json")
 
     session_metadata = JobSettings(
@@ -177,6 +181,7 @@ def generate_watchdog_manifest(
     start_time: datetime,
     config: Config,
 ) -> None:
+    """Generates a manifest file for aind-watchdog-service to transfer data off-rig"""
     logger.info("Generating manifest file")
     data_directory = config.acquisition_dir / session_id
     # sync_file = [i for i in data_directory.glob("*.h5") if "full_field" not in str(i)][0]
@@ -217,6 +222,7 @@ def generate_watchdog_manifest(
 
 
 def process_dataset(user_name: str, session_id: str, config: Config) -> bool:
+    """Process a single dataset: generate metadata and manifest files."""
     logger.info("Processing dataset", session_id=session_id, user_name=user_name)
 
     # subject_id, project_id = query_lims(session_id, config.session_endpoint)
