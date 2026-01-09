@@ -20,29 +20,29 @@ from meso_prepare_transfer.config import Config
 from meso_prepare_transfer.utils.sync_dataset import Sync
 
 
-# TODO: Remove
-@logger.catch()
-def query_lims(
-    session_id: str,
-    session_endpoint: str,
-) -> tuple[str, str]:
-    """Query LIMS for subject and project ID based on session ID.
+# # TODO: Remove
+# @logger.catch()
+# def query_lims(
+#     session_id: str,
+#     session_endpoint: str,
+# ) -> tuple[str, str]:
+#     """Query LIMS for subject and project ID based on session ID.
 
-    Raises:
-        requests.exceptions.RequestException: If the HTTP request fails.
-        IndexError: If the session id is invalid and no data is found in LIMS.
-        KeyError: If the LIMS session data isn't formatted as expected.
-    """
-    url = session_endpoint.format(session_id)
-    response = requests.get(url, timeout=2)
-    response.raise_for_status()
-    try:
-        session_data = response.json()[0]
-    except IndexError:
-        raise IndexError("No data found for the given session ID.")
-    subject_id = session_data["specimen"]["external_specimen_name"]
-    project_id = session_data["project"]["code"]
-    return subject_id, project_id
+#     Raises:
+#         requests.exceptions.RequestException: If the HTTP request fails.
+#         IndexError: If the session id is invalid and no data is found in LIMS.
+#         KeyError: If the LIMS session data isn't formatted as expected.
+#     """
+#     url = session_endpoint.format(session_id)
+#     response = requests.get(url, timeout=2)
+#     response.raise_for_status()
+#     try:
+#         session_data = response.json()[0]
+#     except IndexError:
+#         raise IndexError("No data found for the given session ID.")
+#     subject_id = session_data["specimen"]["external_specimen_name"]
+#     project_id = session_data["project"]["code"]
+#     return subject_id, project_id
 
 
 @logger.catch()
