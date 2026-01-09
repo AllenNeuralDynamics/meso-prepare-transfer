@@ -1,7 +1,7 @@
 """Functions to process a mesoscope dataset for transfer off-rig"""
 
 from datetime import datetime, timedelta
-import requests
+# import requests
 from pathlib import Path
 import json
 
