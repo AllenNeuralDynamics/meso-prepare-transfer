@@ -214,7 +214,7 @@ def generate_watchdog_manifest(
         subject_id=subject_id,
         acquisition_datetime=start_time,
         modalities=data,
-        schemas=schemas,
+        schemas=[str(s) for s in schemas],
         project_name=project_name,
         extra_identifying_info={"ophys_session_id": session_id},
         **config.watchdog_manifest_kwargs,
