@@ -1,0 +1,60 @@
+logserver_url: "eng-logtools.corp.alleninstitute.org:9000"
+
+acquisition_dir: "D:/scanimage_ophys/data"
+behavior_video_dir: "//W10SV109650002/mvr/data"
+
+manifest_directory: "C:/Users/svc_mesoscope/Documents/aind_watchdog_service/manifest"
+
+schemas:
+  - "C:/ProgramData/aind/rig.json"
+  - "session.json"
+  - "data_description.json"
+
+watchdog_manifest_kwargs:
+  schedule_time: "03:00:00"
+  destination: "//allen/aind/scratch/2p-working-group/data-uploads"
+  platform: "multiplane-ophys"
+  transfer_service_job_type: "multi_pophys_suite2p_cellpose"
+  delete_modalities_source_after_success: false
+
+investigators:
+  "Learning mFISH-V1omFISH":
+    - "Marina Garrett"
+    - "Peter Groblewski"
+    - "Anton Arkhipov"
+    - "Omid Zobeiri"
+  "OpenScope":
+    - "Jerome Lecoq"
+
+modalities:
+  pophys:
+    - "*_averaged_depth.tiff"
+    - "*_averaged_surface.tiff"
+    - "*cortical_z_stack*.tiff"
+    - "*fullfield.roi"
+    - "*fullfield.tiff"
+    - "*local_z_stack*.tiff"
+    - "*platform.json"
+    - "*reticle.tif"
+    - "*surface.roi"
+    - "*timeseries.roi"
+    - "*timeseries.tiff"
+    - "*vasculature.tif"
+    - "*_timeseries_Motion*.csv"
+    - "*_timeseries_Motion_Corrected*.csv"
+    - "parent_session_depth_images/*_depth.tif"
+    - "parent_session_surface_images/*_surface.tif"
+    - "sorted_local_z_stacks/*.tif"
+  behavior-videos:
+    - "*Behavior*.mp4"
+    - "*Face*.mp4"
+    - "*Eye*.mp4"
+    - "*Behavior*.json"
+    - "*Face*.json"
+    - "*Eye*.json"
+    - "*Nose*.mp4"
+    - "*Nose*.json"
+  behavior:
+    - "*stim.pkl"
+    - "*stim_table.csv"
+    - "*sync.h5"
