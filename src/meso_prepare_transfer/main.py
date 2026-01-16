@@ -39,7 +39,8 @@ def main(username: str, session_id: str):
         logserver_url=config.logserver_url,
     )
 
-    process_dataset(username, session_id, config)
+    with logger.contextualize(session_id=session_id, username=username):
+        process_dataset(username, session_id, config)
 
 
 if __name__ == "__main__":

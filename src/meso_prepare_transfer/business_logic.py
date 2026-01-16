@@ -31,6 +31,7 @@ def parse_platform_json(
         KeyError: If the platform.json data isn't formatted as expected.
     """
     platform_fp = next(data_directory.rglob("*platform.json"), "")
+    logger.debug(f"Parsing platform.json for subject and project ID at {platform_fp}")
     if not platform_fp:
         raise FileNotFoundError(f"No platform.json found in {data_directory}")
     with open(platform_fp, "r") as pf:
@@ -51,6 +52,7 @@ def get_start_end_times(data_directory: Path) -> tuple[datetime, datetime]:
         (start_time: datetime, end_time: datetime)
     """
     sync_file = [i for i in data_directory.glob("*.h5") if "full_field" not in str(i)][0]
+    logger.debug(f"Parsing sync file for start and end times at {sync_file}")
     sync_data = Sync(sync_file)
     sync_start = sync_data.meta_data["start_time"]
     acq_start = sync_data.get_rising_edges(5, units="seconds")  # stimulus trigger line
@@ -92,6 +94,7 @@ def generate_aind_metadata(
     meso_etl = MesoscopeEtl(session_metadata)
     meso_etl.run_job()
 
+    logger.info("Generating Data Description Json")
     investigators = [PIDName(name=inv) for inv in config.investigators[data_schema_project_name]]
 
     raw_description = RawDataDescription(
@@ -180,52 +183,52 @@ def generate_watchdog_manifest(
         extra_identifying_info={"ophys_session_id": session_id},
         **config.watchdog_manifest_kwargs,
     )
-    manifest_file.write_standard_file(config.manifest_directory)
+    manifest_path = manifest_file.write_standard_file(config.manifest_directory)
+    logger.info(f"Manifest written to {manifest_path}")
 
 
 def process_dataset(user_name: str, session_id: str, config: Config) -> bool:
     """Process a single dataset: generate metadata and manifest files."""
-    logger.info("Processing dataset", session_id=session_id, user_name=user_name)
+    logger.info("Processing dataset")
 
     subject_id, project_id = parse_platform_json(config.acquisition_dir / session_id)
 
-    logger.info(f"Project ID: {project_id}, Subject ID: {subject_id}")
+    with logger.contextualize(subject_id=subject_id, project_id=project_id):
+        data_directory = config.acquisition_dir / session_id
 
-    data_directory = config.acquisition_dir / session_id
+        camera_jsons = list(config.behavior_video_dir.glob(f"{session_id}*.json"))
+        if len(camera_jsons) == 0:
+            logger.error("No camera json files found")
+            return False
+        elif len(camera_jsons) < 3:
+            logger.info("Less than 3 camera jsons found")
 
-    camera_jsons = list(config.behavior_video_dir.glob(f"{session_id}*.json"))
-    if len(camera_jsons) == 0:
-        logger.error("No camera json files found")
-        return False
-    elif len(camera_jsons) < 3:
-        logger.info("Less than 3 camera jsons found")
+        start_time, end_time = get_start_end_times(data_directory)
 
-    start_time, end_time = get_start_end_times(data_directory)
+        if "OpenScope" in project_id:
+            data_schema_project_name = "OpenScope"
+        else:
+            data_schema_project_name = "Learning mFISH-V1omFISH"
 
-    if "OpenScope" in project_id:
-        data_schema_project_name = "OpenScope"
-    else:
-        data_schema_project_name = "Learning mFISH-V1omFISH"
+        generate_aind_metadata(
+            data_directory=data_directory,
+            behavior_dir=Path(config.behavior_video_dir),
+            session_id=session_id,
+            user_name=user_name,
+            subject_id=subject_id,
+            project_id=project_id,
+            data_schema_project_name=data_schema_project_name,
+            start_time=start_time,
+            end_time=end_time,
+            config=config,
+        )
 
-    generate_aind_metadata(
-        data_directory=data_directory,
-        behavior_dir=Path(config.behavior_video_dir),
-        session_id=session_id,
-        user_name=user_name,
-        subject_id=subject_id,
-        project_id=project_id,
-        data_schema_project_name=data_schema_project_name,
-        start_time=start_time,
-        end_time=end_time,
-        config=config,
-    )
-
-    generate_watchdog_manifest(
-        session_id,
-        subject_id,
-        data_schema_project_name,
-        user_name,
-        start_time,
-        config,
-    )
-    return True
+        generate_watchdog_manifest(
+            session_id,
+            subject_id,
+            data_schema_project_name,
+            user_name,
+            start_time,
+            config,
+        )
+        return True
