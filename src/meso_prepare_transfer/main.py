@@ -11,7 +11,7 @@ from meso_prepare_transfer.business_logic import process_dataset
 from .utils.source_config import fetch_config_from_server
 from .utils.logging_config import setup_logger
 
-from meso_prepare_transfer import __version__, APP_NAME, DATA_DIR
+from meso_prepare_transfer import __version__, APP_NAME, DATA_DIR, PYTHON_VERSION, PYTHON_EXE, PACKAGES
 from meso_prepare_transfer.config import Config
 
 app = App()
@@ -37,6 +37,14 @@ def main(username: str, session_id: str):
         __version__,
         log_file=DATA_DIR / "logs" / f"{APP_NAME}.log",
         logserver_url=config.logserver_url,
+    )
+
+    logger.debug(
+        f"Starting {APP_NAME}",
+        python_version=PYTHON_VERSION,
+        python_executable=PYTHON_EXE,
+        package_versions=PACKAGES,
+        **config.model_dump(),
     )
 
     with logger.contextualize(session_id=session_id, username=username):

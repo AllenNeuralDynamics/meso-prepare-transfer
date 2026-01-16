@@ -2,6 +2,7 @@
 
 import importlib.metadata
 from pathlib import Path
+import sys
 
 from platformdirs import site_data_dir
 
@@ -18,3 +19,7 @@ DATA_DIR = Path(
         ensure_exists=True,
     )
 )
+
+PYTHON_VERSION = sys.version
+PYTHON_EXE = sys.executable
+PACKAGES = {d.metadata["name"]: d.version for d in importlib.metadata.distributions()}
