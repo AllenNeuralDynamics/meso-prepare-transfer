@@ -26,4 +26,4 @@ jobs:
       run: uvx ruff check src tests
 
     - name: Run tests and coverage
-      run: uvx coverage run -m unittest discover && uvx coverage report
+      run: uv run pytest
