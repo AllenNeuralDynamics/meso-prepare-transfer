@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 
 from pathlib import Path
+import sys
 import json
 
 from loguru import logger
@@ -20,7 +21,6 @@ from meso_prepare_transfer.config import Config
 from meso_prepare_transfer.utils.sync_dataset import Sync
 
 
-@logger.catch()
 def parse_platform_json(
     data_directory: Path,
 ) -> tuple[str, str]:
@@ -41,7 +41,6 @@ def parse_platform_json(
     return subject_id, project_id
 
 
-@logger.catch()
 def get_start_end_times(data_directory: Path) -> tuple[datetime, datetime]:
     """Gets the start and end times from the sync file based
     on the stimulus trigger line (rising edge for start, falling edge for end)
@@ -144,7 +143,6 @@ def search_files(
     return matched_files
 
 
-@logger.catch()
 def generate_watchdog_manifest(
     session_id: str,
     subject_id: str,
@@ -187,6 +185,7 @@ def generate_watchdog_manifest(
     logger.info(f"Manifest written to {manifest_path}")
 
 
+@logger.catch(message="Could not process dataset", onerror=lambda _: sys.exit(1))
 def process_dataset(user_name: str, session_id: str, config: Config) -> bool:
     """Process a single dataset: generate metadata and manifest files."""
     logger.info("Processing dataset")
