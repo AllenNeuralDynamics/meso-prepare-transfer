@@ -1,6 +1,6 @@
 [project]
 name = "meso-prepare-transfer"
-version = "1.0.0.dev0"
+version = "1.0.0"
 description = "Adapter to prepare mesoscope session data for transfer to aind-data-transfer-service"
 readme = "README.md"
 authors = [
