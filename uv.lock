@@ -414,12 +414,12 @@ dependencies = [
     { name = "h5py" },
     { name = "loguru" },
     { name = "numpy" },
+    { name = "pandas" },
     { name = "platformdirs" },
     { name = "pyinstaller" },
     { name = "pyside6" },
     { name = "pyyaml" },
     { name = "requests" },
-    { name = "scipy" },
 ]
 
 [package.dev-dependencies]
@@ -440,12 +440,12 @@ requires-dist = [
     { name = "h5py" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "numpy", specifier = "==1.26.4" },
+    { name = "pandas", specifier = "<3.0.0" },
     { name = "platformdirs", specifier = ">=4.3.8" },
     { name = "pyinstaller" },
     { name = "pyside6", specifier = "==6.6.3" },
     { name = "pyyaml" },
     { name = "requests" },
-    { name = "scipy" },
 ]
 
 [package.metadata.requires-dev]
