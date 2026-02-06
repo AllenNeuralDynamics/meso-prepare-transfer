@@ -1,6 +1,6 @@
 [project]
 name = "meso-prepare-transfer"
-version = "1.0.1"
+version = "1.0.2"
 description = "Adapter to prepare mesoscope session data for transfer to aind-data-transfer-service"
 readme = "README.md"
 authors = [
@@ -18,7 +18,7 @@ dependencies = [
     'pyyaml',
     'pyinstaller',
     'h5py',
-    'scipy',
+    'pandas<3.0.0',
     'numpy==1.26.4',
     "platformdirs>=4.3.8",
     "aind-watchdog-service>=0.1.6.dev2",
